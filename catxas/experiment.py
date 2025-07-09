@@ -101,6 +101,24 @@ def save_experiment(experiment, fname):
     return
 
 def groups_lists(exp, spectra_name_list, spectra_name = 'mu sample'):
+    '''
+    what do I do?
+
+    Parameters
+    ----------
+    exp : TYPE
+        DESCRIPTION.
+    spectra_name_list : TYPE
+        DESCRIPTION.
+    spectra_name : TYPE, optional
+        DESCRIPTION. The default is 'mu sample'.
+
+    Returns
+    -------
+    grp_list : TYPE
+        DESCRIPTION.
+
+    '''
     grp_list = []
     for key in exp.spectra.keys():
         if key in spectra_name_list:
@@ -110,6 +128,22 @@ def groups_lists(exp, spectra_name_list, spectra_name = 'mu sample'):
 
 
 def process_concat(exp, spectra_name_list):
+    '''
+    what do I do?
+
+    Parameters
+    ----------
+    exp : TYPE
+        DESCRIPTION.
+    spectra_name_list : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    process_df : TYPE
+        DESCRIPTION.
+
+    '''
     process_df_list = []
     for key in exp.spectra.keys():
         if key in spectra_name_list:
@@ -124,6 +158,24 @@ def process_concat(exp, spectra_name_list):
     return process_df
 
 def time_lists(exp, spectra_name_list):
+    '''
+    what do I do?  Can I do this inside an experiment function instead?
+    
+    something like exp.time_list() --> list of timestamps?
+
+    Parameters
+    ----------
+    exp : TYPE
+        DESCRIPTION.
+    spectra_name_list : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    time_list : TYPE
+        DESCRIPTION.
+
+    '''
     time_list = []
     for key in exp.spectra.keys():
         if key in spectra_name_list:
@@ -132,6 +184,26 @@ def time_lists(exp, spectra_name_list):
     return time_list
 
 def merge_spectra(exp, spectra_name_list, xarray = 'energy', yarray = 'mu'):
+    '''
+    what do I do?
+
+    Parameters
+    ----------
+    exp : TYPE
+        DESCRIPTION.
+    spectra_name_list : TYPE
+        DESCRIPTION.
+    xarray : TYPE, optional
+        DESCRIPTION. The default is 'energy'.
+    yarray : TYPE, optional
+        DESCRIPTION. The default is 'mu'.
+
+    Returns
+    -------
+    spectra_dict : TYPE
+        DESCRIPTION.
+
+    '''
     
     # Create List of Groups [Sample and Ref]
     S_grp_list = groups_lists(exp, spectra_name_list, spectra_name = 'mu Sample')
@@ -197,7 +269,8 @@ class Experiment:
         #P lace to store all beamline data and XAS workup
         self.spectra = {} 
         # Place to store all  analysis results from things like LCF/PCA
-        self.analysis = {'LCF':{}, 'PCA':{}} 
+        # Updated 11/19/2024 by ASH - added MCR-ALS to starting script
+        self.analysis = {'LCF':{}, 'PCA':{}, 'MCR-ALS':{}} 
          # Catch-all place for summary of results, needs work
          # Update 1/28/2024 by ASH - Force empty XAS Spectra Files datafame
         self.summary = {'XAS Spectra Files': pd.DataFrame(columns=['Time','TOS [s]', 'File Name', 'Padded Name', 'Path'])}
@@ -384,7 +457,7 @@ class Experiment:
             elif is_QEXAFS:
                 # To be checked with new QXAFS Data
                 time = dt.strptime(time_str, time_format)
-                micros = self.spectra[fname]['BL Data'].time[0] # to be checked
+                micros = self.spectra[fname]['BL Data'].Time[0] # to be checked
                 micros_to_date = datetime.timedelta(microseconds = micros)
                 time = time + micros_to_date
 
@@ -507,8 +580,13 @@ class Experiment:
     
     def correlate_process_params(self):
         '''
-        TBD
-        '''          
+        What do I do???
+        
+        Returns
+        -------
+        None.
+
+        '''
         
         self.summary['XAS Spectra Process Params'] = self.summary['XAS Spectra Files'][['File Name','TOS [s]']]
         print('Genearted Spectra Summary')
@@ -531,6 +609,22 @@ class Experiment:
     ###########################################
     
     def data_length_screen(self, deviations = 3, print_summary = True):
+        '''
+        what do I do?
+
+        Parameters
+        ----------
+        deviations : TYPE, optional
+            DESCRIPTION. The default is 3.
+        print_summary : TYPE, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        problem_spectra : TYPE
+            DESCRIPTION.
+
+        '''
         # Extract the number of data points and the starting and ending E value in each spectrum for interrogation
         fnames = []
         datapts = []
@@ -620,6 +714,24 @@ class Experiment:
             
     
     def edge_step_screen(self, deviations = 3, print_summary = True, show_problem_spectra = True):
+        '''
+        what do I do???
+
+        Parameters
+        ----------
+        deviations : TYPE, optional
+            DESCRIPTION. The default is 3.
+        print_summary : TYPE, optional
+            DESCRIPTION. The default is True.
+        show_problem_spectra : TYPE, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        '''
         # Extract all the edge steps for interrogation
         fnames = []
         steps = []
@@ -739,6 +851,24 @@ class Experiment:
     
     
     def check_Energy_Range(self, spectra_name = 'mu Sample', has_e0 = False, print_summary = True):
+        '''
+        what do I do?
+
+        Parameters
+        ----------
+        spectra_name : TYPE, optional
+            DESCRIPTION. The default is 'mu Sample'.
+        has_e0 : TYPE, optional
+            DESCRIPTION. The default is False.
+        print_summary : TYPE, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        df : TYPE
+            DESCRIPTION.
+
+        '''
         
         # Build dataframe indlucing e0
         if has_e0:
@@ -807,7 +937,7 @@ class Experiment:
     
     ###############################################
     
-    def calculate_spectrum(self, scan, sample_spectra = True, ref_spectra = True):
+    def calculate_spectrum(self, scan, sample_spectra = True, ref_spectra = True, print_ch = False):
         '''
         
         Calculate the absorption spectrum for the sample (and reference)
@@ -822,6 +952,8 @@ class Experiment:
         ref_spectra : BOOL, optional
             Flag to determine if the absorption spectrum of the reference is calcualted.
             The default is True.
+        print_ch : BOOL, optional
+            prints spectra and channels used in the absorption coefficient calcuation. used for debugging. The default is False.
 
         Returns
         -------
@@ -841,12 +973,13 @@ class Experiment:
             sample_invert = self.spectra[scan]['XAS Data Structure']['sample invert']
             
             # Diagnostic added 5/7/2024 to make sure it recognizes multi-channel numerators and denominators
-            
-            print(f'Channels in Numerator: {sample_numerator}')
-            print(f'Channels in Denominator: {sample_denominator} ')
+            if print_ch:
+                print(f'Absorption spectra calcualted for: {scan}')
+                print(f'\tChannels in Numerator: {sample_numerator}')
+                print(f'\tChannels in Denominator: {sample_denominator} ')
             
             # Extract data from signal columns
-            photon_energy = self.spectra[scan]['BL Data'][energy_col]
+            photon_energy = self.spectra[scan]['BL Data'].__dict__[energy_col]
             
             # Start update 4/17/2024
             #samp_numerator = self.spectra[scan]['BL Data'].__dict__[sample_numerator]
@@ -857,7 +990,8 @@ class Experiment:
                 for i in range(len(sample_numerator)):
                     
                     # Added diagnostic 5/7/24
-                    print(sample_numerator[i])
+                    if print_ch:
+                        print(f'Numerator Added: {sample_numerator[i]}')
                     
                     if i == 0:
                         samp_numerator = self.spectra[scan]['BL Data'].__dict__[sample_numerator[i]]
@@ -892,7 +1026,7 @@ class Experiment:
             reference_invert = self.spectra[scan]['XAS Data Structure']['reference invert'] 
   
             # Extract data from signal columns
-            photon_energy = self.spectra[scan]['BL Data'][energy_col]
+            photon_energy = self.spectra[scan]['BL Data'].__dict__[energy_col]
             
             # Start update 4/17/2024
             #ref_numerator = self.spectra[scan]['BL Data'].__dict__[reference_numerator]
@@ -962,7 +1096,7 @@ class Experiment:
         energy_col = self.spectra[scan]['XAS Data Structure']['energy column']
         
         # Placeholder values if remove funciton is not called
-        E_Pts1 = len(self.spectra[scan]['BL Data'][energy_col])
+        E_Pts1 = len(self.spectra[scan]['BL Data'].__dict__[energy_col])
         E_Pts2 = E_Pts1
         naninf_Pts1 = E_Pts1
         naninf_Pts2 = E_Pts1
@@ -973,17 +1107,17 @@ class Experiment:
         if remove_duplicates:
 
             # Lenght of dateset - uses lenght of energy column
-            E_Pts1 = len(self.spectra[scan]['BL Data'][energy_col])
+            E_Pts1 = len(self.spectra[scan]['BL Data'].__dict__[energy_col])
             
             # Finds all unique values and indicies
-            values, index = np.unique(self.spectra[scan]['BL Data'][energy_col], return_index=True)
+            values, index = np.unique(self.spectra[scan]['BL Data'].__dict__[energy_col], return_index=True)
             
             # Keep only index values of unique data points
             for line in self.spectra[scan]['BL Data'].array_labels:
                 self.spectra[scan]['BL Data'].__dict__[line] = self.spectra[scan]['BL Data'].__dict__[line][index]
             
             # Lenght of new dataset wiht duplicates removed
-            E_Pts2 = len(self.spectra[scan]['BL Data'][energy_col])
+            E_Pts2 = len(self.spectra[scan]['BL Data'].__dict__[energy_col])
             
             if feedback:
                 print(f'Duplicate data points removed for {scan}')
@@ -1058,7 +1192,7 @@ class Experiment:
     
     ###############################################
     
-    def calculate_spectra(self, sample_spectra = True, ref_spectra = True):
+    def calculate_spectra(self, sample_spectra = True, ref_spectra = True, print_ch = False):
         '''
         Calculates the absorption spectra of every scan (and their reference channel)
 
@@ -1072,17 +1206,20 @@ class Experiment:
         ref_spectra : BOOL, optional
             Flag to determine if the absorption spectrum of the reference is calcualted.
             The default is True.
+        print_ch : BOOL, optional
+            prints spectra and channels used in the absorption coefficient calcuation. used for debugging. The default is False.
 
         Returns
         -------
         None.
 
         '''
+        
         # 1/28/2024 ASH - created to try to integrate real time data analysis
         
         for key in self.spectra.keys():
             
-            self.calculate_spectrum(key, sample_spectra = sample_spectra, ref_spectra = ref_spectra)
+            self.calculate_spectrum(key, sample_spectra = sample_spectra, ref_spectra = ref_spectra, print_ch = print_ch)
             
         return
        
@@ -1218,10 +1355,39 @@ class Experiment:
     
     def calibrate_reference_spectra(self, edge_energy, energy_range=[-20,20], plot_range = 20, use_mean = True, overlay = True, data_filtering = True, plot_filtering = True, window_length = 5, polyorder = 2):
         '''
+        What do I do?
+        
         Calibrates the reference channel spectra based upon edge_energy provided
         sets reference energy e0 to edge_energy
         shifts sample + reference energy scales based upon average edge energy position
+
+        Parameters
+        ----------
+        edge_energy : TYPE
+            DESCRIPTION.
+        energy_range : TYPE, optional
+            DESCRIPTION. The default is [-20,20].
+        plot_range : TYPE, optional
+            DESCRIPTION. The default is 20.
+        use_mean : TYPE, optional
+            DESCRIPTION. The default is True.
+        overlay : TYPE, optional
+            DESCRIPTION. The default is True.
+        data_filtering : TYPE, optional
+            DESCRIPTION. The default is True.
+        plot_filtering : TYPE, optional
+            DESCRIPTION. The default is True.
+        window_length : TYPE, optional
+            DESCRIPTION. The default is 5.
+        polyorder : TYPE, optional
+            DESCRIPTION. The default is 2.
+
+        Returns
+        -------
+        None.
+
         '''
+
         if type(energy_range) == float or type(energy_range) == int:
             energy_range = [-1*energy_range, energy_range]
         
@@ -1294,10 +1460,35 @@ class Experiment:
         
     def find_sample_e0(self, edge_energy, energy_range = 20, use_mean = True, overlay = True, data_filtering = True, plot_filtering = True, window_length = 5, polyorder = 2):
         '''
+        what do I do?
+        
         finds the edge positions of the samples around edge_energy value and energy_range
         set sample e0 value to found value or mean value
         use_mean = True --> use mean value of e0 for every spectra
         use_mean = False --> use calculated value of e0 for each spectra
+
+        Parameters
+        ----------
+        edge_energy : TYPE
+            DESCRIPTION.
+        energy_range : TYPE, optional
+            DESCRIPTION. The default is 20.
+        use_mean : TYPE, optional
+            DESCRIPTION. The default is True.
+        overlay : TYPE, optional
+            DESCRIPTION. The default is True.
+        data_filtering : TYPE, optional
+            DESCRIPTION. The default is True.
+        plot_filtering : TYPE, optional
+            DESCRIPTION. The default is True.
+        window_length : TYPE, optional
+            DESCRIPTION. The default is 5.
+        polyorder : TYPE, optional
+            DESCRIPTION. The default is 2.
+
+        Returns
+        -------
+        None.
 
         '''
 

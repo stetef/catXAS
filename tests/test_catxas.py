@@ -6,7 +6,6 @@
 import unittest
 from click.testing import CliRunner
 
-from catxas import catxas
 from catxas import cli
 
 

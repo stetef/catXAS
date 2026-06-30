@@ -1,0 +1,34 @@
+# Pre-commit hooks for catXAS. See https://pre-commit.com
+#
+# One-time setup (after `uv sync`):
+#     uv run pre-commit install
+# Then the hooks run automatically on every `git commit`. To run manually:
+#     uv run pre-commit run --all-files
+#
+# ruff replaces black + isort + flake8 (formatter + linter in one tool);
+# line length / lint rules are configured in pyproject.toml [tool.ruff].
+repos:
+  # General file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: mixed-line-ending
+
+  # Lint + format (replaces black/isort/flake8)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # Dependency guard: fail if pyproject.toml and uv.lock have drifted apart
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.11.26
+    hooks:
+      - id: uv-lock

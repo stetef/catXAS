@@ -76,3 +76,11 @@ line-length = 120
 exclude = ["docs", "notebooks"]
 # Honor `exclude` even when pre-commit passes file paths explicitly.
 force-exclude = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Deselect the full-dataset regression by default; run it with `pytest -m slow`.
+addopts = "-m 'not slow' --strict-markers"
+markers = [
+    "slow: full-dataset (50-spectrum) regression against committed sample results",
+]

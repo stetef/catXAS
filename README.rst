@@ -6,8 +6,9 @@ catXAS
 .. image:: https://img.shields.io/pypi/v/catxas.svg
         :target: https://pypi.python.org/pypi/catxas
 
-.. image:: https://img.shields.io/travis/ahoffm02/catxas.svg
-        :target: https://travis-ci.com/ahoffm02/catxas
+.. image:: https://github.com/ahoffm02/catXAS/actions/workflows/ci.yml/badge.svg
+        :target: https://github.com/ahoffm02/catXAS/actions/workflows/ci.yml
+        :alt: CI Status
 
 .. image:: https://readthedocs.org/projects/catxas/badge/?version=latest
         :target: https://catxas.readthedocs.io/en/latest/?version=latest

@@ -1,32 +1,82 @@
 # catXAS
 
-A Python based XAS analysis workflow that also correlates process data streams to the XAS spectra.
+[![CI](https://github.com/ahoffm02/catXAS/actions/workflows/ci.yml/badge.svg)](https://github.com/ahoffm02/catXAS/actions/workflows/ci.yml)
 
-# To get Started:
-## Install Anaconda:
-1.	Download and install the anaconda python distribution:
+A Python-based XAS analysis workflow that also correlates process data streams
+to the XAS spectra. Built for in-situ catalysis XAS data collected via CXAS at
+SSRL.
 
-  	    https://www.anaconda.com/products/distribution 
+## Requirements
 
-## Install Larch in dedicated environment (CatXAS) and additional dependencies:
+- Python **3.10+**
+- [uv](https://docs.astral.sh/uv/) for environment and dependency management
 
-This is a modified set of installation notes from the xraylarch source (https://xraypy.github.io/xraylarch/) [updated 4/8/2026]:
+Install uv (once, if you don't have it):
 
-1.	Activate your conda environment (called base by default) and update it:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-        conda activate
-        conda update -y conda python pip
+## Installation
 
-2.	Create a dedicated python 3.10.13 environment (name = catXAS) to install Larch into and activate it:
+Clone the repository and let uv create the environment from the lockfile:
 
-        conda create -y --name catXAS python=3.10.13
-        conda activate catXAS
+```bash
+git clone https://github.com/ahoffm02/catXAS.git
+cd catXAS
+uv sync
+```
 
-3.	Install the main dependencies:
+`uv sync` creates a `.venv/` with the exact, locked versions of all
+dependencies (numpy, pandas, scipy, matplotlib, xraylarch, etc.). To include
+the Jupyter stack used by the notebooks in `notebooks/`:
 
-  	    pip install glob2 ipywidgets
-  	    pip install jupyter
-  	    
-5.	install X-ray Larch:
+```bash
+uv sync --extra notebooks
+```
 
-  	    pip install xraylarch
+> **Prefer conda?** xraylarch also installs cleanly under conda. You can create
+> a `python=3.10` environment and `pip install .` into it, but the uv workflow
+> above is the supported path for development.
+
+## Usage
+
+Run anything inside the project environment with `uv run` (no manual
+activation needed):
+
+```bash
+uv run python -c "import catxas; print(catxas.__version__)"
+uv run catxas            # the CLI entry point
+```
+
+In your own code:
+
+```python
+from catxas import xas, process, plot, experiment
+```
+
+The `notebooks/` directory contains example end-to-end workflows.
+
+## Development
+
+```bash
+uv sync                      # set up the environment
+uv run pre-commit install    # enable git hooks (one time)
+
+uv run pytest                # run the test suite
+uv run ruff check .          # lint
+uv run ruff format .         # auto-format
+
+uv add <package>             # add a runtime dependency (updates pyproject + lock)
+uv add --dev <package>       # add a dev-only dependency
+```
+
+Linting/formatting (ruff) and dependency-lock checks run automatically on every
+commit via pre-commit, and the same checks plus tests run in CI across Python
+3.10–3.12. See [CONTRIBUTING.rst](CONTRIBUTING.rst) for the full contributor
+workflow and [MODERNIZATION.md](MODERNIZATION.md) for the rationale behind the
+current tooling.
+
+## License
+
+GNU General Public License v3. See [LICENSE](LICENSE).

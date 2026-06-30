@@ -28,23 +28,24 @@ From sources
 
 The sources for catXAS can be downloaded from the `Github repo`_.
 
-You can either clone the public repository:
+Clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/ahoffm02/catxas
+    $ git clone https://github.com/ahoffm02/catXAS.git
+    $ cd catXAS
 
-Or download the `tarball`_:
-
-.. code-block:: console
-
-    $ curl -OJL https://github.com/ahoffm02/catxas/tarball/master
-
-Once you have a copy of the source, you can install it with:
+catXAS uses `uv`_ for environment and dependency management. Create the
+environment from the lockfile with:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ uv sync
+
+Add ``--extra notebooks`` to include the Jupyter stack used by the example
+notebooks. See ``CONTRIBUTING.rst`` for the full development workflow.
+
+.. _uv: https://docs.astral.sh/uv/
 
 
 .. _Github repo: https://github.com/ahoffm02/catxas

@@ -29,3 +29,14 @@ def test_read_lv_data_returns_timeindexed_frame():
 def test_ms_index_is_monotonic():
     ms = process.ReadMSData(str(MS_FILE))
     assert ms.index.is_monotonic_increasing
+
+
+def test_lv_valve_setpoints_mapped_to_numbers():
+    """Regression: the 'A'/'B'/position string setpoints must be mapped to
+    1/2/0. Under pandas copy-on-write the old replace(inplace=True) silently
+    left them as strings."""
+    lv = process.ReadLVData(str(LV_FILE))
+    for col in ("SV1 SP", "SV1 Feedback", "SV2 SP", "SV2 Feedback"):
+        if col in lv.columns:
+            values = set(lv[col].dropna().unique())
+            assert values <= {0, 1, 2}, f"{col} still has unmapped values: {values}"

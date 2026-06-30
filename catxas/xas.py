@@ -72,9 +72,9 @@ def calc_mu(numerator, denominator, log=True, flip = False):
         
     elif flip:
         if not log:
-            mu = np.divide(numerator, denominator)
+            mu = np.divide(denominator, numerator)
         elif log:
-            mu = np.log(np.divide(numerator, denominator))
+            mu = np.log(np.divide(denominator, numerator))
         else:
             print("ERROR: SET LOG TO BOOL")
         

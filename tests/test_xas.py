@@ -25,6 +25,20 @@ def test_calc_mu_accepts_lists():
     assert mu == pytest.approx([1.0, 2.0])
 
 
+def test_calc_mu_flip_inverts_ratio():
+    num = np.array([2.0, 8.0])
+    den = np.array([1.0, 2.0])
+    mu = xfcts.calc_mu(num, den, log=False, flip=True)
+    assert mu == pytest.approx([0.5, 0.25])  # D/N, not N/D
+
+
+def test_calc_mu_flip_with_log():
+    num = np.array([1.0])
+    den = np.array([np.e])
+    mu = xfcts.calc_mu(num, den, log=True, flip=True)
+    assert mu == pytest.approx([1.0])  # ln(D/N) = ln(e/1) = 1
+
+
 def test_create_larch_spectrum_has_energy_and_mu():
     energy = np.linspace(29000, 29500, 50)
     num = np.linspace(1.0, 2.0, 50)

@@ -230,7 +230,10 @@ def ReadLVData(filename):
     
     for line in text_columns:
         if line in data.columns:
-            data[line].replace(to_replace = {'A':1, 'B':2,'A - Left position':1, 'B - Center position':2, 'Moving or Left':0}, inplace = True)
+            # Assign back rather than replace(inplace=True): under pandas
+            # copy-on-write the inplace form operates on a temporary and never
+            # updates `data`, so the string setpoints would pass through unmapped.
+            data[line] = data[line].replace(to_replace = {'A':1, 'B':2,'A - Left position':1, 'B - Center position':2, 'Moving or Left':0})
     
     # Remove duplicate index
     data = data.loc[~data.index.duplicated(), :]

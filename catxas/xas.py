@@ -30,7 +30,7 @@ import larch
 from larch.io import read_ascii
 
 #From Catxas
-import general as fcts
+from . import general as fcts
 
 
 ##############################################################################

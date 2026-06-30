@@ -22,7 +22,7 @@ import matplotlib.gridspec as gridspec
 from scipy.signal import savgol_filter
 
 #From Catxas
-import general as fcts
+from . import general as fcts
 
 
 ##############################################################################

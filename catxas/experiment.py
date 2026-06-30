@@ -35,10 +35,10 @@ from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
 # From Catxas
-import general as fcts
-import xas as xfcts
-import plot as pfcts
-import process
+from . import general as fcts
+from . import xas as xfcts
+from . import plot as pfcts
+from . import process
 
 
 ##############################################################################

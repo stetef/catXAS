@@ -62,6 +62,7 @@ dev = [
     "twine>=5.0",
     "bump-my-version>=0.20",
     "sphinx>=7.0",
+    "myst-parser>=2.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -72,3 +73,5 @@ target-version = "py310"
 line-length = 120
 # notebooks/ use an interactive (non-package) import style; docs/ is generated.
 exclude = ["docs", "notebooks"]
+# Honor `exclude` even when pre-commit passes file paths explicitly.
+force-exclude = true

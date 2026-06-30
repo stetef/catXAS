@@ -432,7 +432,16 @@ class Experiment:
         self.spectra[fname]['XAS Data Structure'] = xas_data_structure
         
         self.spectra[fname]['BL Data'] = read_ascii(file, labels=col_names)
-        
+
+        # Modern larch lowercases the array_labels passed to read_ascii, but the
+        # rest of catxas references columns by the case given in the XAS data
+        # structure (e.g. 'Energy', 'ADC_01'). read_ascii keeps the columns in the
+        # order they were requested, so restore the original casing here.
+        bl_data = self.spectra[fname]['BL Data']
+        for col_index, col_name in enumerate(col_names):
+            bl_data.__dict__[col_name] = bl_data.data[col_index]
+        bl_data.array_labels = list(col_names)
+
         self.spectra[fname]['BL Data'].__name__ = fname
         
         # Determine the enregy values at the start/end of the dataset
@@ -449,14 +458,18 @@ class Experiment:
         # Updating the Summary File
         if time_stamp:
             
-            time_str = self.spectra[fname]['BL Data'].header[time_line]
-            
+            time_str = self.spectra[fname]['BL Data'].header[time_line].strip()
+            # Modern larch strips trailing whitespace from header lines, so a time
+            # format carrying surrounding whitespace (as in the example configs)
+            # would no longer match. Compare both without surrounding whitespace.
+            time_fmt = time_format.strip()
+
             if not is_QEXAFS:
-                time = dt.strptime(time_str, time_format)
+                time = dt.strptime(time_str, time_fmt)
 
             elif is_QEXAFS:
                 # To be checked with new QXAFS Data
-                time = dt.strptime(time_str, time_format)
+                time = dt.strptime(time_str, time_fmt)
                 micros = self.spectra[fname]['BL Data'].Time[0] # to be checked
                 micros_to_date = datetime.timedelta(microseconds = micros)
                 time = time + micros_to_date

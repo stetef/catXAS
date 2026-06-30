@@ -137,8 +137,14 @@ def mergeindex(df1, df2, method = 'time'):
     """
     
     
-    df2 = df2.reindex(df2.index.union(df1.index)).interpolate(method=method, limit_area = None).reindex(df1.index)
-    
+    # Interpolate only the numeric columns. Older pandas silently skipped
+    # non-numeric columns here; pandas 3.x (PyArrow-backed strings) instead
+    # raises "Cannot interpolate with str dtype", so select numerics explicitly.
+    df2 = df2.reindex(df2.index.union(df1.index))
+    numeric_cols = df2.select_dtypes(include='number').columns
+    df2[numeric_cols] = df2[numeric_cols].interpolate(method=method, limit_area=None)
+    df2 = df2.reindex(df1.index)
+
     return df2
 
 def parse_list(m, n):

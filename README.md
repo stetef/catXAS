@@ -1,6 +1,6 @@
 # catXAS
 
-[![CI](https://github.com/ahoffm02/catXAS/actions/workflows/ci.yml/badge.svg)](https://github.com/ahoffm02/catXAS/actions/workflows/ci.yml)
+[![CI](https://github.com/stetef/catXAS/actions/workflows/ci.yml/badge.svg)](https://github.com/stetef/catXAS/actions/workflows/ci.yml)
 
 A Python-based XAS analysis workflow that also correlates process data streams
 to the XAS spectra. Built for in-situ catalysis XAS data collected via CXAS at

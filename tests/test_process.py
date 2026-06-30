@@ -1,5 +1,8 @@
 """Unit tests for the process-stream readers in ``catxas.process``."""
 
+import warnings
+from pathlib import Path
+
 import pandas as pd
 
 from catxas import process
@@ -40,3 +43,14 @@ def test_lv_valve_setpoints_mapped_to_numbers():
         if col in lv.columns:
             values = set(lv[col].dropna().unique())
             assert values <= {0, 1, 2}, f"{col} still has unmapped values: {values}"
+
+
+def test_process_module_has_no_invalid_escape_sequences():
+    """Regex/format strings must be raw strings: a bare '\\d' triggers a
+    SyntaxWarning today and is slated to become a SyntaxError."""
+    source = Path(process.__file__).read_text()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        compile(source, process.__file__, "exec")
+    invalid = [str(w.message) for w in caught if issubclass(w.category, SyntaxWarning)]
+    assert not invalid, invalid

@@ -44,7 +44,7 @@ def Read_Hiden_QGAPro(filename):
     fname_no_ext = os.path.splitext(base_name)[0]
     
     # searching filename for time stamp
-    match_str = re.search('\d+-\d+-\d+ \d+-\d+-\d+ \w+', fname_no_ext)
+    match_str = re.search(r'\d+-\d+-\d+ \d+-\d+-\d+ \w+', fname_no_ext)
   
     # Convert timestamp string into datetime object
     time_zero = dt.strptime(match_str.group(), '%m-%d-%Y %I-%M-%S %p')#.date()

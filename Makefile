@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build clean-docs docs servedocs lint format test coverage dist release install help
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -21,12 +21,12 @@ for line in sys.stdin:
 endef
 export PRINT_HELP_PYSCRIPT
 
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
+BROWSER := uv run python -c "$$BROWSER_PYSCRIPT"
 
 help:
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+	@uv run python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
+clean: clean-build clean-pyc clean-test clean-docs ## remove all build, test, coverage and Python artifacts
 
 clean-build: ## remove build artifacts
 	rm -fr build/
@@ -42,44 +42,42 @@ clean-pyc: ## remove Python file artifacts
 	find . -name '__pycache__' -exec rm -fr {} +
 
 clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
 	rm -f .coverage
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
+	rm -fr .ruff_cache
 
-lint: ## check style with flake8
-	flake8 catxas tests
+clean-docs: ## remove generated docs
+	rm -f docs/catxas.rst docs/modules.rst
+	rm -fr docs/_build
 
-test: ## run tests quickly with the default Python
-	python setup.py test
+lint: ## check code with ruff
+	uv run ruff check .
 
-test-all: ## run tests on every Python version with tox
-	tox
+format: ## auto-format code with ruff
+	uv run ruff format .
 
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source catxas setup.py test
-	coverage report -m
-	coverage html
+test: ## run tests with pytest
+	uv run pytest
+
+coverage: ## measure code coverage and open the HTML report
+	uv run pytest --cov=catxas --cov-report=term-missing --cov-report=html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/catxas.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ catxas
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
+docs: clean-docs ## generate Sphinx HTML documentation, including API docs
+	uv run sphinx-apidoc -o docs/ catxas
+	uv run sphinx-build -b html docs docs/_build/html
 	$(BROWSER) docs/_build/html/index.html
 
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
+servedocs: ## live-rebuild and serve the docs while editing
+	uv run sphinx-autobuild docs docs/_build/html
 
-release: dist ## package and upload a release
-	twine upload dist/*
-
-dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
+dist: clean ## build source and wheel packages
+	uv build
 	ls -l dist
 
-install: clean ## install the package to the active Python's site-packages
-	python setup.py install
+release: dist ## upload a release to PyPI (build with `uv build` first)
+	uv run twine upload dist/*
+
+install: ## sync the project environment from the lockfile
+	uv sync

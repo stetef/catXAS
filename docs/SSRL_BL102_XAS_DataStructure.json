@@ -1,0 +1,17 @@
+{
+    "time stamp": true,
+    "time on line": 5,
+    "time format": "# This Scan Create Date:\t%m/%d/%Y %I:%M:%S %p",
+    "padded scan numbers": true,
+    "column names": ["Encoder", "Energy", "ADC_01", "ADC_02", "ADC_03", "ADC_04", "ADC_05", "ADC_06", "ADC_07", "ADC_08"],
+    "energy column": "Energy",
+    "sample numerator": "ADC_01",
+    "sample denominator": "ADC_02",
+    "sample ln": true,
+    "sample invert": false,
+    "reference numerator": "ADC_02",
+    "reference denominator": "ADC_03",
+    "reference ln": true,
+    "reference invert": false,
+    "is QEXAFS": false
+}

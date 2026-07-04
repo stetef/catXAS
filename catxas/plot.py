@@ -34,8 +34,12 @@ import general as fcts
 def get_cmap(n, name='brg'):
     '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct 
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
-    return plt.cm.get_cmap(name, n)
-
+    try: 
+        # for mpl <3.9
+        return plt.cm.get_cmap(name, n)
+    except: 
+        # for mpl >=3.9
+        return plt.colormaps[name].resampled(n)
 
 def plot_XYs_Vline(xy_list, vline_pos, emin, emax, axis_label = ['Photon Energy (eV)','Norm mux'], size = [12, 10]):
     
@@ -347,6 +351,8 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
                         ax2.axvline(line, color = 'r')
                         #ax2.plot([line, line], [der_mu_min-0.25*abs(der_del_mu), der_mu_max+0.25*abs(der_del_mu)], color = 'r')
                         
+    plt.show()
+    
     return
     
 def plot_chi(larch_groups, kweight = 2, kmin = 0, kmax = 15, overlay = True, use_legend = True, cmap_name = 'brg'):
@@ -638,18 +644,31 @@ def plot_NormXANES(larch_group):
     ax2.axvline(pre1, c = 'b', linestyle = 'dotted')
     ax2.axvline(pre2, c = 'b', linestyle = 'dotted')
     
-    ax2.set_xlim(min(x), e0+10)
+    xmin = min(x)
+    xmax = e0+10
+    
+    ax2.set_xlim(xmin, xmax)
+    
+    # Update 7/1/2026 by ASH to limit scaling of the plotting for pre and post edges
+    
+    # 1. Create a boolean mask for data inside this x range
+    mask = (x >= xmin) & (x <= xmax)
+    
+    # 2. Filter the y data and find min/max
+    y_visible = y1[mask]
+    ymin = np.min(y_visible)
+    ymax = np.max(y_visible)
 
-    ymin = min(y1)
-    ymax  = max(y1)
+    #ymin = min(y1)
+    #ymax  = max(y1)
 
-    ax2.set_ylim(ymin-abs(ymin)*0.05, ymin+abs((ymax-ymin))/3)
+    ax2.set_ylim(ymin-abs(ymin)*0.05, ymin+abs((ymax-ymin))/4)
 
     ax2.set_title('Pre-edge')
 
     # vertical lines here!!!
 
-    # Subplot #2 - Pre-edge Fit
+    # Subplot #3 - Post-edge Fit
 
     y1 = larch_group.mu
 
@@ -660,9 +679,26 @@ def plot_NormXANES(larch_group):
 
     ax3.axvline(norm1, color = 'b', linestyle = 'dotted')
     ax3.axvline(norm2, color = 'b', linestyle = 'dotted')
+    
+    xmin = e0-50
+    xmax = max(x)
 
-    ax3.set_xlim(e0-50,max(x)+50)
+    ax3.set_xlim(xmin, xmax)
+    
+    # Update 7/1/2026 by ASH to limit scaling of the plotting for pre and post edges
+    
+    # 1. Create a boolean mask for data inside this x range
+    mask = (x >= xmin) & (x <= xmax)
+
+    # 2. Filter the y data and find min/max
+    y_visible = y1[mask]
+    ymin = np.min(y_visible)
+    ymax = np.max(y_visible)
+    
+    ax3.set_ylim(ymin+abs((ymax-ymin))/3, ymax+abs(ymax)*0.05 )
 
     ax3.set_title('Post-edge')
+    
+    plt.show()
                         
     return   

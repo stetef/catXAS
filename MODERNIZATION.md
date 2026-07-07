@@ -115,7 +115,7 @@ The `Makefile` wraps the common chores: `make test`, `make lint`, `make format`,
 ## Tests and the bugs they surfaced
 
 The cookiecutter CLI stub has been replaced with a real two-tier suite under
-`tests/` (44 tests; the fast tier runs in ~3 s):
+`tests/` (60 fast + 1 slow; the fast tier runs in ~4 s):
 
 - **Unit tests** for the pure helpers in `general` (`find_nearest`,
   `get_trailing_number`, `parse_list`, `mergeindex`), `xas` (`calc_mu`,
@@ -126,6 +126,13 @@ The cookiecutter CLI stub has been replaced with a real two-tier suite under
   invariants — edge step, e0 at the Sn K-edge, first-shell FT peak, LCF basis
   self-fit, weights summing to one, and the monotonic oxidized→reduced trend —
   plus a light golden snapshot of the LCF amplitudes.
+- **Analysis tests** for the merged multivariate modules: `test_pca.py` and
+  `test_mcrals.py` drive `catxas.pca` / `catxas.mcrals` the way the Example 5.0
+  (PCA) and 5.1 (MCR-ALS) notebooks do — decomposing the committed
+  `SnO2_TPR_NormXANES.csv`. They assert PCA variance ordering and exact
+  full-rank reconstruction, the four unique-spectra selectors, and that a
+  3-component MCR-ALS fit (non-negativity-constrained, deterministic with
+  `perturb_initial=False`) reconstructs far better than a single mean spectrum.
 - A **`@pytest.mark.slow`** regression runs the full 50-spectrum pipeline
   against a self-consistent golden; it is deselected by default
   (`uv run pytest -m slow`).

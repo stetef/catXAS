@@ -13,7 +13,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from catxas import mcrals
+# catxas.mcrals needs the optional 'notebooks' extra (pymcr, scikit-learn, ...);
+# skip the whole module if those aren't installed rather than erroring.
+mcrals = pytest.importorskip("catxas.mcrals")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 NORM_XANES = REPO_ROOT / "sample results" / "SnO2_TPR_NormXANES.csv"

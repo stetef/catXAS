@@ -12,7 +12,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from catxas import pca
+# catxas.pca needs the optional 'notebooks' extra (scikit-learn, kneed, ...);
+# skip the whole module if those aren't installed rather than erroring.
+pca = pytest.importorskip("catxas.pca")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 NORM_XANES = REPO_ROOT / "sample results" / "SnO2_TPR_NormXANES.csv"

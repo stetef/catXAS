@@ -24,8 +24,10 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
+      # --extra notebooks pulls the multivariate-analysis stack (scikit-learn,
+      # kneed, pymcr) so the catxas.pca / catxas.mcrals tests can run.
       - name: Install the project
-        run: uv sync --python ${{ matrix.python-version }}
+        run: uv sync --extra notebooks --python ${{ matrix.python-version }}
 
       # Non-blocking for now: catxas/ has a pre-existing lint backlog
       # (~50 issues, incl. possible undefined-name bugs) to be cleaned up

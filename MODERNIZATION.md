@@ -45,10 +45,10 @@ dependencies now match what the code actually imports:
 | `xraylarch` | XAS science (imported as `larch`) |
 
 The Jupyter stack (`jupyter`, `ipywidgets`) used by `notebooks/` is now an
-optional extra: `uv sync --extra notebooks`. The multivariate-analysis modules
-(`catxas.pca` / `catxas.mcrals`) pull a heavier stack (`scikit-learn`, `kneed`,
-`pymcr`, `ipywidgets`) that the core XAS pipeline does not need, so they live in
-a separate `analysis` extra: `uv sync --extra analysis`. Dev tooling moved from the stale
+optional extra: `uv sync --extra notebooks`. That same extra also carries the
+multivariate-analysis stack (`scikit-learn`, `kneed`, `pymcr`) needed by the
+`catxas.pca` / `catxas.mcrals` modules and the PCA/MCR-ALS notebooks; none of it
+is required for the core XAS pipeline. Dev tooling moved from the stale
 `requirements_dev.txt` into a `[dependency-groups] dev` set (pytest, pytest-cov,
 ruff, pre-commit, build, twine, bump-my-version, sphinx, sphinx-autobuild,
 myst-parser).
@@ -168,8 +168,8 @@ were resolved deliberately:
   reorganized `Example N.x` notebook set (including the new PCA/MCR-ALS
   examples) and its regenerated outputs were taken wholesale.
 - **`catxas/pca.py`, `catxas/mcrals.py`** — new modules, merged as-is apart from
-  the relative-import fix noted above; their dependencies became the `analysis`
-  extra.
+  the relative-import fix noted above; their dependencies (`scikit-learn`,
+  `kneed`, `pymcr`) were folded into the existing `notebooks` extra.
 
 ## Known follow-ups (intentionally out of scope here)
 

@@ -476,16 +476,13 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-analysis = [
+notebooks = [
     { name = "ipywidgets" },
+    { name = "jupyter" },
     { name = "kneed" },
     { name = "pymcr" },
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-notebooks = [
-    { name = "ipywidgets" },
-    { name = "jupyter" },
 ]
 
 [package.dev-dependencies]
@@ -510,19 +507,18 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.0" },
     { name = "glob2", specifier = ">=0.7" },
-    { name = "ipywidgets", marker = "extra == 'analysis'", specifier = ">=8.0" },
     { name = "ipywidgets", marker = "extra == 'notebooks'", specifier = ">=8.0" },
     { name = "jupyter", marker = "extra == 'notebooks'", specifier = ">=1.0" },
-    { name = "kneed", marker = "extra == 'analysis'", specifier = ">=0.8" },
+    { name = "kneed", marker = "extra == 'notebooks'", specifier = ">=0.8" },
     { name = "matplotlib", specifier = ">=3.7" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "pandas", specifier = ">=2.0" },
-    { name = "pymcr", marker = "extra == 'analysis'", specifier = ">=0.5" },
-    { name = "scikit-learn", marker = "extra == 'analysis'", specifier = ">=1.3" },
+    { name = "pymcr", marker = "extra == 'notebooks'", specifier = ">=0.5" },
+    { name = "scikit-learn", marker = "extra == 'notebooks'", specifier = ">=1.3" },
     { name = "scipy", specifier = ">=1.10" },
     { name = "xraylarch", specifier = ">=0.9.70" },
 ]
-provides-extras = ["notebooks", "analysis"]
+provides-extras = ["notebooks"]
 
 [package.metadata.requires-dev]
 dev = [

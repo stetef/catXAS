@@ -29,7 +29,8 @@ uv sync
 
 `uv sync` creates a `.venv/` with the exact, locked versions of all
 dependencies (numpy, pandas, scipy, matplotlib, xraylarch, etc.). To include
-the Jupyter stack used by the notebooks in `notebooks/`:
+the Jupyter stack and the multivariate-analysis packages (scikit-learn, kneed,
+pymcr) used by the notebooks in `notebooks/`:
 
 ```bash
 uv sync --extra notebooks

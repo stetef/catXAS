@@ -201,13 +201,13 @@ def create_random_subset(source_dir, n_files, subset_name="subset of data for sc
     ---------
     # Create subset with 100 random files
     subset_dir = create_random_subset(
-        source_dir=r"C:\data\all_spectra",
+        source_dir="path/to/all_spectra",
         n_files=100
     )
     
     # Use custom subset folder name
     subset_dir = create_random_subset(
-        source_dir=r"C:\data\all_spectra",
+        source_dir="path/to/all_spectra",
         n_files=50,
         subset_name="test_data"
     )
@@ -284,14 +284,14 @@ def delete_subset(source_dir, subset_name="subset of data for screening", confir
     Examples:
     ---------
     # Delete the subset folder
-    delete_subset(source_dir=r"C:\data\all_spectra")
+    delete_subset(source_dir="path/to/all_spectra")
     
     # Delete with confirmation prompt
-    delete_subset(source_dir=r"C:\data\all_spectra", confirm=True)
+    delete_subset(source_dir="path/to/all_spectra", confirm=True)
     
     # Delete custom-named subset
     delete_subset(
-        source_dir=r"C:\data\all_spectra",
+        source_dir="path/to/all_spectra",
         subset_name="test_data"
     )
     """

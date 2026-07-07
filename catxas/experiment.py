@@ -102,21 +102,21 @@ def save_experiment(experiment, fname):
 
 def groups_lists(exp, spectra_name_list, spectra_name = 'mu sample'):
     '''
-    what do I do?
+    creates a list of larch groups, sample or reference, based upon the spectra in the spectra_name_list. Can be used to parsce the experimental dataset
 
     Parameters
     ----------
-    exp : TYPE
-        DESCRIPTION.
-    spectra_name_list : TYPE
-        DESCRIPTION.
-    spectra_name : TYPE, optional
-        DESCRIPTION. The default is 'mu sample'.
+    exp : EXPERIMENT OBJECT
+        Experimetnal class object
+    spectra_name_list : LIST
+        list of spectra names INSIDE the experimntal class to extract the specified spectra_name from (mu sample or mu reference)
+    spectra_name : STR, optional
+        Sample or reference spectra to extract. The default is 'mu sample'. 1/15/2026 only has options of "mu sample" or "mu refernece"
 
     Returns
     -------
-    grp_list : TYPE
-        DESCRIPTION.
+    grp_list : LIST
+        List of larch groups corresponding to spectra in the spectra_name_list.
 
     '''
     grp_list = []
@@ -129,19 +129,19 @@ def groups_lists(exp, spectra_name_list, spectra_name = 'mu sample'):
 
 def process_concat(exp, spectra_name_list):
     '''
-    what do I do?
+    creates a pandas dataframe of process paramters based upon the spectra in the spectra_name_list. Can be used to parsce the experimetnal dataset.
 
     Parameters
     ----------
-    exp : TYPE
-        DESCRIPTION.
-    spectra_name_list : TYPE
-        DESCRIPTION.
+    exp : EXPERIMENT OBJECT
+        Experimetnal class object
+    spectra_name_list : LIST
+        list of spectra names INSIDE the experimntal class to extract the specified spectra_name from (mu sample or mu reference)
 
     Returns
     -------
-    process_df : TYPE
-        DESCRIPTION.
+    process_df : DATAFRAME
+        Dataframe of the process paramters for spectra defined in the spectra_name_list. 1/15/2026 - it looks like it removes the name of the scan and only uses time. TBD by ASH
 
     '''
     process_df_list = []
@@ -159,21 +159,19 @@ def process_concat(exp, spectra_name_list):
 
 def time_lists(exp, spectra_name_list):
     '''
-    what do I do?  Can I do this inside an experiment function instead?
-    
-    something like exp.time_list() --> list of timestamps?
+    Creates a lsit of time stamps for the spectra defined in the spectr_name_list.
 
     Parameters
     ----------
-    exp : TYPE
-        DESCRIPTION.
-    spectra_name_list : TYPE
-        DESCRIPTION.
+    exp : EXPERIMENT OBJECT
+        Experimetnal class object
+    spectra_name_list : LIST
+        list of spectra names INSIDE the experimntal class to extract the specified spectra_name from (mu sample or mu reference)
 
     Returns
     -------
-    time_list : TYPE
-        DESCRIPTION.
+    time_list : LIST
+        List of timestamps for the define spectra.
 
     '''
     time_list = []
@@ -240,7 +238,7 @@ def merge_spectra(exp, spectra_name_list, xarray = 'energy', yarray = 'mu'):
     spectra_dict = {'XAS Data Structure': None, 
                     'Time': time_mean, 
                     'Absorption Spectra':{'mu Sample': S_grp_mean, 'mu Reference': R_grp_mean},
-                    'Process Values':process_mean
+                    'Process Values': process_mean
                    }
     
     return spectra_dict
@@ -252,6 +250,7 @@ def merge_spectra(exp, spectra_name_list, xarray = 'energy', yarray = 'mu'):
 ##############################################################################
 
 class Experiment:
+    # Can I make this like a dictionary? e.g. Experiment(dict)?
     
     ########################
     
@@ -375,8 +374,8 @@ class Experiment:
     
     ##############################################
     
-    def import_spectrum(self, file, xas_data_structure, print_name = False):
-        #Added 1/27/2024 by ASH - goal is to creaate method to append filed to an empty or existing experiment
+    def import_spectrum(self, file, xas_data_structure, ext = '.txt', print_name = False):
+        #Added 1/27/2024 by ASH - goal is to creaate method to append a file to an empty or existing experiment
         '''
         Loads XAS data of a single spectrum into the spectra dictionary of the experiment class.
         
@@ -389,7 +388,7 @@ class Experiment:
             Path to single spectrum file.
         xas_data_structure : DICT
             Dictionary of XAS data strcuture. Examples found in 
-            "BL specific XAS data structures.ipynb" in teh notebooks section
+            "BL specific XAS data structures.ipynb" in the notebooks section
             of the module.
         print_name : BOOL, optional
             Returns the name of each spectra uploaded to experiment object.
@@ -412,8 +411,11 @@ class Experiment:
         energy_name = xas_data_structure['energy column']
         
         # Get the name of the scan without path or extension
-        fname = os.path.basename(file)[:-4]
-        
+        if ext == None:
+            fname = os.path.basename(file)
+        else:
+            fname = os.path.basename(file)[:-4]
+            
         # Added padded zeros to scan if sample does not have any
         if not padded:
             scan_no = fcts.get_trailing_number(fname)
@@ -477,24 +479,37 @@ class Experiment:
             else:
                 pass
        
-            temp_dict = {'Time': [time],
-                         'TOS [s]': [0],
-                         'File Name': [fname],
-                         'Padded Name': [fname_padded],
-                         'Path': [file]}
-            
-            temp_df = pd.DataFrame(temp_dict)
-            temp_df.set_index('Time', inplace = True)
+            #temp_dict = {'Time': [time],
+            #             'TOS [s]': [0],
+            #             'File Name': [fname],
+            #             'Padded Name': [fname_padded],
+            #             'Path': [file]}
+            #
+            #temp_df = pd.DataFrame(temp_dict)
+            #temp_df.set_index('Time', inplace = True)
             
         else:
-            temp_dict = {'Time': [dt.time()],
-                         'TOS [s]': [0],
-                         'File Name': [fname],
-                         'Padded Name': [fname_padded],
-                         'Path': [file]}
             
-            temp_df = pd.DataFrame(temp_dict)
-            temp_df.set_index('Time', inplace = True)
+            time = dt.now() # added 2/10/2026 by ASH to fix bux about not having a time stamp
+            
+            #temp_dict = {'Time': [time],
+            #             'TOS [s]': [0],
+            #             'File Name': [fname],
+            #             'Padded Name': [fname_padded],
+            #             'Path': [file]}
+            #
+            #temp_df = pd.DataFrame(temp_dict)
+            #temp_df.set_index('Time', inplace = True)
+            
+        # relocated 2/10/2026 by ASH to simplify code above
+        temp_dict = {'Time': [time],
+                     'TOS [s]': [0],
+                     'File Name': [fname],
+                     'Padded Name': [fname_padded],
+                     'Path': [file]}
+        
+        temp_df = pd.DataFrame(temp_dict)
+        temp_df.set_index('Time', inplace = True)
                         
         self.summary['XAS Spectra Files'] = pd.concat([self.summary['XAS Spectra Files'], temp_df], axis = 0, ignore_index=False)
                 
@@ -544,11 +559,14 @@ class Experiment:
         '''
         
         # Use glob2 to get a list of all files in files_directory
-        files = glob.glob(xas_data_directory+f'/**/*{ext}', recursive=True)
+        if ext == None:
+            files = glob.glob(xas_data_directory+'/**/*', recursive=True)
+        else:
+            files = glob.glob(xas_data_directory+f'/**/*{ext}', recursive=True)
         
         for line in files:
         
-            self.import_spectrum(line, xas_data_structure, print_name = print_name)
+            self.import_spectrum(line, xas_data_structure, ext = ext, print_name = print_name)
         
         return
     
@@ -593,7 +611,7 @@ class Experiment:
     
     def correlate_process_params(self):
         '''
-        What do I do???
+        Creates a "Process Values" dataframe that consists of all process data in the "Process Params" dictionary interpolated onto the time stamps of the spectra files.
         
         Returns
         -------
@@ -998,7 +1016,7 @@ class Experiment:
             #samp_numerator = self.spectra[scan]['BL Data'].__dict__[sample_numerator]
             #samp_denominator = self.spectra[scan]['BL Data'].__dict__[sample_denominator]
             
-            # Update 4/17/2024 to include multi-channle numerators and denomunators. Check to see if there are multiple channels to be added (e.g multi-pixel Ge detetor) and sum them, otherwise use single dataset
+            # Update 4/17/2024 to include multi-channle numerators and denominators. Check to see if there are multiple channels to be added (e.g multi-pixel Ge detetor) and sum them, otherwise use single dataset
             if isinstance(sample_numerator, list):
                 for i in range(len(sample_numerator)):
                     
@@ -1021,11 +1039,16 @@ class Experiment:
                     else:
                         samp_denominator = np.sum([samp_denominator, self.spectra[scan]['BL Data'].__dict__[sample_denominator[i]]], axis = 0)
             else:
-                samp_denominator = self.spectra[scan]['BL Data'].__dict__[sample_denominator]
+                # Check if its devided by 1 or not
+                if sample_denominator == int(1) or sample_denominator == None:
+                    samp_denominator = [1]*len(samp_numerator)
+                
+                else:
+                    samp_denominator = self.spectra[scan]['BL Data'].__dict__[sample_denominator]
 
             # End update 4/17/2024
             
-            samp_log=sample_ln
+            samp_log = sample_ln
             samp_flip = sample_invert
             
             # Calcualte Absorption Coefficient 
@@ -1063,7 +1086,12 @@ class Experiment:
                     else:
                         ref_denominator = ref_denominator + self.spectra[scan]['BL Data'].__dict__[reference_denominator[i]]
             else:
-                ref_denominator = self.spectra[scan]['BL Data'].__dict__[reference_denominator]
+                # Check if its devided by 1 or not
+                if reference_denominator == str(1) or reference_denominator == None:
+                    ref_denominator = [1]*len(ref_numerator)
+                
+                else:
+                    ref_denominator = self.spectra[scan]['BL Data'].__dict__[reference_denominator]
 
             # End update 4/17/2024            
 
@@ -1313,7 +1341,7 @@ class Experiment:
         return
     
     
-    def interpolate_spectra(self, start, stop, step, x_axis = 'Energy', sample = 'mu Sample'):
+    def interpolate_spectra(self, start, stop, step, y_axis_name = 'Energy', sample = 'mu Sample'):
         '''
         NEEDS UPDATING 
 
@@ -1330,39 +1358,127 @@ class Experiment:
 
         '''
         
-        # Creat list of values to interpoalte on (stop value inclusive)
-        interp_E = np.arange(start, stop+step, step)
+        
+        
+        ### updated by ASH on 5/19/2026 to add more rebust features
+            # Old def: interpolate_spectra(self, start, stop, step, x_axis = 'Energy', sample = 'mu Sample')
+        
+        # Create list of x-axis values to interpoalte on (stop value inclusive)
+        x_axis_grid = np.arange(start, stop+step, step)
         
         # Create a df to concatinate all spectra onto
-        results_df = pd.DataFrame(index = interp_E)
-        results_df.index.rename(x_axis, inplace = True)
+        results_df = pd.DataFrame(index = x_axis_grid)
+        
+        if y_axis_name == 'Energy':
+            x_axis_name = 'Energy'
+        
+        elif y_axis_name == 'chi':
+            x_axis_name = 'k'
+        
+                
+        
+        results_df.index.rename(x_axis_name, inplace = True)
         
         for key in self.spectra.keys():
             #Write Select Data into dataframe
-            time_step = self.spectra[key]['Time'] 
+            time_step = self.spectra[key]['Time']
             
-            if x_axis == 'energy':
-                #y = 'flat'
-                data = {x_axis:self.spectra[key]['Absorption Spectra'][sample].__dict__['energy']+self.spectra[key]['Absorption Spectra'][sample].delE,
-                time_step:self.spectra[key]['Absorption Spectra'][sample].__dict__['flat']}
-            
-            elif x_axis == 'k':
-                #y = 'chi'    
-                data = {x_axis:self.spectra[key]['Absorption Spectra'][sample].__dict__['k']+self.spectra[key]['Absorption Spectra'][sample].delE,
-                time_step:self.spectra[key]['Absorption Spectra'][sample].__dict__['chi']}
-             
+            if y_axis_name == 'Energy':
+               
+               x = self.spectra[key]['Absorption Spectra'][sample].__dict__['energy']+self.spectra[key]['Absorption Spectra'][sample].delE
+               
+               y = self.spectra[key]['Absorption Spectra'][sample].__dict__['flat']
+           
+            elif y_axis_name == 'chi':
+                
+                try:
+                    kweight = self.spectra[key]['Absorption Spectra'][sample].kweight
+                    
+                    y_axis_name = y_axis_name+f'_k^{kweight}'
+                except:
+                    print('k weight not defined, deafaulting to k weight = 2')
+                    kweight = 2
+                    y_axis_name = y_axis_name+'_k^2'
+               
+                x = self.spectra[key]['Absorption Spectra'][sample].__dict__['k']
+               
+                y = self.spectra[key]['Absorption Spectra'][sample].__dict__['chi']*x**kweight
+        
+            data = {
+                x_axis_name: x,
+                y_axis_name: y}
             
             temp_df = pd.DataFrame(data)
-            temp_df = temp_df.set_index(x_axis)
+            temp_df = temp_df.set_index(x_axis_name)
             
             temp_interp_df = fcts.interp_df(temp_df, results_df.index)
             
             results_df = pd.concat([results_df, temp_interp_df], axis=1, join="inner")
             
-        
         # Write to summary branch of DF
-        self.summary[f'Interpolated {x_axis}'] = results_df
+        self.summary[f'Interpolated {x_axis_name}'] = results_df
+            
+        return
+    
+    def interpolate_spectra_E(self, start, stop, step, sample = 'mu Sample', mu = 'flat'):
+        '''
         
+
+        Parameters
+        ----------
+        start : TYPE
+            DESCRIPTION.
+        stop : TYPE
+            DESCRIPTION.
+        step : TYPE
+            DESCRIPTION.
+        sample : TYPE, optional
+            DESCRIPTION. The default is 'mu Sample'.
+        mu : TYPE, optional
+            DESCRIPTION. The default is 'flat'.
+
+        Returns
+        -------
+        None.
+
+        '''
+        
+        
+        
+        ### updated by ASH on 5/19/2026 to add more rebust features
+            # Old def: interpolate_spectra(self, start, stop, step, x_axis = 'Energy', sample = 'mu Sample')
+        
+        # Create list of x-axis values to interpoalte on (stop value inclusive)
+        x_axis_grid = np.arange(start, stop+step, step)
+        
+        # Create a df to concatinate all spectra onto
+        results_df = pd.DataFrame(index = x_axis_grid)
+        
+        results_df.index.rename('energy', inplace = True)
+        
+        for key in self.spectra.keys():
+            #Write Select Data into dataframe
+            time_step = self.spectra[key]['Time']
+
+            x = self.spectra[key]['Absorption Spectra'][sample].__dict__['energy']+self.spectra[key]['Absorption Spectra'][sample].delE
+               
+            y = self.spectra[key]['Absorption Spectra'][sample].__dict__[mu]
+           
+        
+            data = {
+                'energy': x,
+                time_step: y}
+            
+            temp_df = pd.DataFrame(data)
+            temp_df = temp_df.set_index('energy')
+            
+            temp_interp_df = fcts.interp_df(temp_df, results_df.index)
+            
+            results_df = pd.concat([results_df, temp_interp_df], axis=1, join="inner")
+            
+        # Write to summary branch of DF
+        self.summary['Interpolated energy'] = results_df
+            
         return
 
     
@@ -1747,23 +1863,114 @@ class Experiment:
     ####################################
     
     def save_normalize_spectra(self, output_directory, sep = ',', na_rep='', header = True, index = True):
-        # Define filename of results:
-        fname_normspectra = self.name + '_NormalizedSpectra.csv'
+        '''
+        DEPREIATED 2/10/2026 by ASH - converted to save_XAS_spectra
+
+        Parameters
+        ----------
+        output_directory : TYPE
+            DESCRIPTION.
+        sep : TYPE, optional
+            DESCRIPTION. The default is ','.
+        na_rep : TYPE, optional
+            DESCRIPTION. The default is ''.
+        header : TYPE, optional
+            DESCRIPTION. The default is True.
+        index : TYPE, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        None.
+
+        '''
+        print('Deprecaited function, please use save_xas_spectra instead')
         
-        # Define where the data will be saved
-        output_path = os.path.join(output_directory, fname_normspectra)
+        return
+    
+    def save_xas_spectra(self, output_directory, spectra = 'flat', ext = '.csv', sep = ',', na_rep='', header = True, index = True):
+        '''
+        Saves each XAS spectra outside of the experiment object.  Specifying type (mu, norm, flat) will determine which type of data is exported. If there is a corresponding Reference spectra, that will also be exported.
         
-        for i, key in zip(range(len(self.spectra.keys())), list(self.spectra.keys())):
-            if i == 0:
-                normalized_df = pd.DataFrame({'Energy': self.spectra[key]['mu Sample'].energy, f'{key}': self.spectra[key]['mu Sample'].flat})
-                normalized_df.set_index('Energy', inplace = True)
-            else:
-                temp_df = pd.DataFrame({'Energy': self.spectra[key]['mu Sample'].energy, f'{key}': self.spectra[key]['mu Sample'].flat})
-                temp_df.set_index('Energy', inplace = True)
+        If all spectra are to be exported in a single file with a common energy scale, use save_interpXAS instead
+
+        Parameters
+        ----------
+        output_directory : STR
+            Path to directory where to save the data.
+        spectra : STR, optional
+            Defines whic type of spectra to be exported errors will be presented if the data type does not exist in the larch group of each spectra. The default is 'flat'.
+        ext : STR, optional
+            preferred extension for the output file. The default is '.csv'.
+        sep : STR, optional
+            separator used in parsing the data. The default is ','.
+        na_rep : TYPE, optional
+            how pandas handles NA values in the dataframe when exporting. The default is ''.
+        header : BOOL, optional
+            Include or exclude header values (e.g. energy, mu Sample, mu Reference) when exporting. The default is True.
+        index : BOOL, optional
+            Include or exclude index (line) values. Note Energy axis is not passed as the index when exporting. The default is True.
+
+        Returns
+        -------
+        None.
+
+        '''
+        
+        for line in list(self.spectra.keys()):
+            output_name = line + f'_ExportedSpectra{ext}'
+            
+            output_path = os.path.join(output_directory, output_name)
+        
+            energy = self.spectra[line]['Absorption Spectra']['mu Sample'].energy
+            
+            if spectra == 'mu':
                 
-                normalized_df = pd.concat([normalized_df, temp_df], axis = 1)
+                mu_s = self.spectra[line]['Absorption Spectra']['mu Sample'].mu
+            
+            elif spectra == 'norm':
+                
+                mu_s = self.spectra[line]['Absorption Spectra']['mu Sample'].norm
+                
+            elif spectra == 'flat':
+                
+                mu_s = self.spectra[line]['Absorption Spectra']['mu Sample'].flat
+                
+            else:
+                
+                print('Spectra type not found in dataset, resorting to spectra = "mu"')
+                mu_s = self.spectra[line]['Absorption Spectra']['mu Sample'].mu
+                
+            if 'mu Reference' in self.spectra[line]['Absorption Spectra']:
+                
+                mu_r = self.spectra[line]['Absorption Spectra']['mu Reference'].mu
+            
+                output_df = pd.DataFrame({'Energy': energy, 'mu S': mu_s, 'mu R': mu_r})
+            
+            else:
+            
+                output_df = pd.DataFrame({'Energy': energy, 'mu S': mu_s}) 
         
-        normalized_df.to_csv(output_path, sep=sep, na_rep=na_rep, header=header, index=index)
+            output_df.to_csv(output_path, sep=sep, na_rep=na_rep, header=header, index=index)
+        
+        # Updated to above code on 2/10/2026 by ASH
+        ## Define filename of results:
+        #fname_normspectra = self.name + '_NormalizedSpectra.csv'
+        #
+        ## Define where the data will be saved
+        #output_path = os.path.join(output_directory, fname_normspectra)
+        #
+        #for i, key in zip(range(len(self.spectra.keys())), list(self.spectra.keys())):
+        #    if i == 0:
+        #        normalized_df = pd.DataFrame({'Energy': self.spectra[key]['mu Sample'].energy, f'{key}': self.spectra[key]['mu Sample'].flat})
+        #        normalized_df.set_index('Energy', inplace = True)
+        #    else:
+        #        temp_df = pd.DataFrame({'Energy': self.spectra[key]['mu Sample'].energy, f'{key}': self.spectra[key]['mu Sample'].flat})
+        #        temp_df.set_index('Energy', inplace = True)
+        #        
+        #        normalized_df = pd.concat([normalized_df, temp_df], axis = 1)
+        # 
+        #normalized_df.to_csv(output_path, sep=sep, na_rep=na_rep, header=header, index=index)
         
         return
              
@@ -1794,7 +2001,7 @@ class Experiment:
         # Save the data
         self.summary['Interpolated energy'].to_csv(fname_interpXAS, sep=sep, na_rep=na_rep, header=header, index=index)
     
-        print('Process Parameter Data Saved')
+        print('Interpolated Data Saved')
     
         return
     
@@ -1910,7 +2117,7 @@ class Experiment:
             larch_groups.append(self.spectra[key]['Absorption Spectra'][samp_ref])
 
         pfcts.plot_XANES(larch_groups, emin, emax, spectra = spectra, deriv = deriv, e0 = e0, e0_line = e0_line, ref_lines = ref_lines, overlay = overlay, use_legend = use_legend, cmap_name = cmap_name, filtering = filtering, window_length = window_length, polyorder = polyorder)
-    
+        
     
     def plot_SampRef_XANES(self, emin, emax, spectra = 'mu'):
         ### depreciated
@@ -1994,11 +2201,15 @@ class Experiment:
 
         fig1.subplots_adjust(wspace=0, hspace=0)
         
-        f1_ax1.legend(loc='center right')
+        f1_ax1.legend(loc='lower center')
         f1_ax1.set_ylabel('Fraction of Basis')
         f1_ax1.set_ylim([-0.1, 1.1])
         f1_ax2.set_xlabel('Spectra')
         f1_ax2.set_ylabel('Reduced Chi^2')
+        
+        plt.show()
+        
+        return
         
         
     def plot_LCF(self, spectra, fit_name, emin = None, emax = None, ymin = None, ymax = None):
@@ -2027,3 +2238,8 @@ class Experiment:
         plt.ylim(ymin, ymax)
         plt.title(spectra)
         plt.legend(loc='center right', bbox_to_anchor=(1.75, 0.5))
+        
+        
+        plt.show()
+        
+        return #fig1

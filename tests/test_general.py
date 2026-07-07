@@ -55,9 +55,10 @@ def test_mergeindex_interpolates_numeric_onto_target_index():
     assert out["signal"].iloc[1] == pytest.approx(2.0)  # halfway -> value 2.0
 
 
-def test_mergeindex_tolerates_string_columns():
+def test_mergeindex_drops_string_columns():
     """Regression: pandas 3.x raises on interpolating str columns; mergeindex
-    must skip non-numeric columns instead of blowing up."""
+    must select numeric columns only. Non-numeric columns are dropped from the
+    result (with a warning printed) rather than blowing up."""
     base = pd.date_range("2021-06-14 16:00:00", periods=3, freq="100s")
     src = pd.date_range("2021-06-14 16:00:00", periods=3, freq="100s")
     df1 = pd.DataFrame({"x": [0, 0, 0]}, index=base)
@@ -65,5 +66,5 @@ def test_mergeindex_tolerates_string_columns():
 
     out = fcts.mergeindex(df1, df2)  # must not raise
 
-    assert "label" in out.columns
+    assert "label" not in out.columns  # non-numeric column dropped
     assert out["signal"].tolist() == pytest.approx([1.0, 2.0, 3.0])

@@ -25,18 +25,27 @@ def test_calc_mu_accepts_lists():
     assert mu == pytest.approx([1.0, 2.0])
 
 
-def test_calc_mu_flip_inverts_ratio():
+def test_calc_mu_flip_negates_ratio():
+    # ``flip`` negates the (log) absorption rather than inverting the ratio;
+    # this is the original author's intended semantics for swapped I0/I.
     num = np.array([2.0, 8.0])
     den = np.array([1.0, 2.0])
     mu = xfcts.calc_mu(num, den, log=False, flip=True)
-    assert mu == pytest.approx([0.5, 0.25])  # D/N, not N/D
+    assert mu == pytest.approx([-2.0, -4.0])  # -1 * (N/D)
 
 
 def test_calc_mu_flip_with_log():
     num = np.array([1.0])
     den = np.array([np.e])
     mu = xfcts.calc_mu(num, den, log=True, flip=True)
-    assert mu == pytest.approx([1.0])  # ln(D/N) = ln(e/1) = 1
+    assert mu == pytest.approx([1.0])  # -1 * ln(|N/D|) = -ln(1/e) = 1
+
+
+def test_calc_mu_log_uses_abs_of_ratio():
+    # A negative ratio (e.g. background-subtracted signal dipping below zero)
+    # would produce NaN without the abs guard inside the log.
+    mu = xfcts.calc_mu(np.array([-np.e]), np.array([1.0]), log=True)
+    assert mu == pytest.approx([1.0])  # ln(|-e|) = 1
 
 
 def test_create_larch_spectrum_has_energy_and_mu():

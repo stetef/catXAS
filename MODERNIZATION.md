@@ -45,7 +45,10 @@ dependencies now match what the code actually imports:
 | `xraylarch` | XAS science (imported as `larch`) |
 
 The Jupyter stack (`jupyter`, `ipywidgets`) used by `notebooks/` is now an
-optional extra: `uv sync --extra notebooks`. Dev tooling moved from the stale
+optional extra: `uv sync --extra notebooks`. The multivariate-analysis modules
+(`catxas.pca` / `catxas.mcrals`) pull a heavier stack (`scikit-learn`, `kneed`,
+`pymcr`, `ipywidgets`) that the core XAS pipeline does not need, so they live in
+a separate `analysis` extra: `uv sync --extra analysis`. Dev tooling moved from the stale
 `requirements_dev.txt` into a `[dependency-groups] dev` set (pytest, pytest-cov,
 ruff, pre-commit, build, twine, bump-my-version, sphinx, sphinx-autobuild,
 myst-parser).
@@ -58,6 +61,8 @@ running from inside the package directory; once `catxas` is installed as a
 package, those raise `ModuleNotFoundError`. The six occurrences in `xas.py`,
 `plot.py`, and `experiment.py` are now explicit relative imports
 (`from . import general as fcts`). No behavior change — only import correctness.
+The `pca.py` module later merged from upstream carried the same bare
+`import plot as pfcts`; it was fixed the same way.
 
 ### 4. CI: Travis + tox → GitHub Actions
 
@@ -133,10 +138,38 @@ the dependency bumps exposed. All are fixed with regression coverage:
   timestamp parsing).
 - matplotlib ≥3.9 removed `plt.cm.get_cmap` (→ `plt.get_cmap`).
 - pandas 3.x refuses to interpolate string columns (→ `mergeindex` interpolates
-  numeric columns only).
-- `calc_mu(flip=True)` returned `N/D` instead of `D/N`; the LabView valve
-  setpoints were left unmapped under pandas copy-on-write; and a non-raw regex
-  string in the Hiden reader raised a `SyntaxWarning`.
+  the numeric columns only and drops non-numeric ones — see the upstream-sync
+  note below).
+- the LabView valve setpoints were left unmapped under pandas copy-on-write; and
+  a non-raw regex string in the Hiden reader raised a `SyntaxWarning`.
+
+## Syncing with upstream (`ahoffm02/catXAS`)
+
+Upstream landed one large squashed commit fixing its own dependency-era bugs
+and adding new multivariate-analysis modules. It was merged in (`git merge
+upstream/main`); most of it auto-merged, and the handful of overlapping edits
+were resolved deliberately:
+
+- **`calc_mu(flip=...)`** — upstream and this fork had fixed the same function
+  with *incompatible* semantics. Upstream's is authoritative: `flip` **negates**
+  the (log) absorption (`-1 * ln|N/D|`), it does not invert the ratio, and the
+  log is now guarded with `np.abs` on both paths to avoid NaNs from negative
+  ratios. This fork's earlier "`D/N`" interpretation was dropped and the
+  `calc_mu` tests updated to match.
+- **`get_cmap`** — both fixed the matplotlib ≥3.9 removal; this fork's
+  one-line `plt.get_cmap(name, n)` was kept over upstream's try/except.
+- **`mergeindex`** — upstream's numeric-only fix was taken. Note the behavior
+  difference: it **drops** non-numeric columns (printing which), whereas this
+  fork's version had retained them; the regression test was updated accordingly.
+- **`README.md`** — this fork's rewritten (uv-workflow) README was kept over
+  upstream's, which still lacked the `kneed` dependency note and carried a
+  committed merge-conflict marker.
+- **notebooks / sample results** — both sides had regenerated these; upstream's
+  reorganized `Example N.x` notebook set (including the new PCA/MCR-ALS
+  examples) and its regenerated outputs were taken wholesale.
+- **`catxas/pca.py`, `catxas/mcrals.py`** — new modules, merged as-is apart from
+  the relative-import fix noted above; their dependencies became the `analysis`
+  extra.
 
 ## Known follow-ups (intentionally out of scope here)
 
@@ -151,7 +184,9 @@ the dependency bumps exposed. All are fixed with regression coverage:
   `tests/data/`) and clear the ruff backlog so the hook runs clean.
 - **Dead module**: `catxas/depreciated functions.py` has a space in its
   filename (so it is not importable, and the name is misspelled). It should be
-  deleted or renamed to a valid module.
+  renamed to a valid module — **do not delete it**: upstream treats it as a live
+  graveyard and still appends deprecated functions to it (e.g.
+  `save_normalize_spectra`), so a rename must be coordinated with upstream.
 - **Type checking**: no type checker yet; adding mypy or pyright to CI would
   catch a class of bugs ruff cannot.
 - **Dependency automation**: add a `.github/dependabot.yml` (replacing the

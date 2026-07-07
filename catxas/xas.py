@@ -66,15 +66,15 @@ def calc_mu(numerator, denominator, log=True, flip = False):
         if not log:
             mu = np.divide(numerator, denominator)
         elif log:
-            mu = np.log(np.divide(numerator, denominator))
+            mu = np.log(np.abs(np.divide(numerator, denominator)))
         else:
             print("ERROR: SET LOG TO BOOL")
         
     elif flip:
         if not log:
-            mu = np.divide(denominator, numerator)
+            mu = -1*np.divide(numerator, denominator)
         elif log:
-            mu = np.log(np.divide(denominator, numerator))
+            mu = -1*np.log(np.abs(np.divide(numerator, denominator)))
         else:
             print("ERROR: SET LOG TO BOOL")
         

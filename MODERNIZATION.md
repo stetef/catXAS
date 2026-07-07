@@ -41,7 +41,6 @@ dependencies now match what the code actually imports:
 | `click` | CLI (`catxas.cli`) |
 | `numpy`, `pandas`, `scipy` | data handling / processing |
 | `matplotlib` | plotting |
-| `glob2` | file discovery |
 | `xraylarch` | XAS science (imported as `larch`) |
 
 The Jupyter stack (`jupyter`, `ipywidgets`) used by `notebooks/` is now an

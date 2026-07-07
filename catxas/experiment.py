@@ -13,7 +13,7 @@ Created on Wed Jun  1 15:14:21 2022
 
 # File Handling
 import os
-import glob2 as glob
+import glob
 import pickle
 
 # Timestamps
@@ -558,7 +558,7 @@ class Experiment:
 
         '''
         
-        # Use glob2 to get a list of all files in files_directory
+        # Use glob to get a list of all files in files_directory
         if ext == None:
             files = glob.glob(xas_data_directory+'/**/*', recursive=True)
         else:

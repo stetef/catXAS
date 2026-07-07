@@ -12,7 +12,7 @@ Created on Wed Jun  1 15:17:58 2022
 
 # File Handling
 import os
-import glob2
+import glob
 
 # Timestamps
 import datetime
@@ -225,8 +225,8 @@ def CXAS_Sorted(files_directory, ext = '.txt', time_stamp = True, time_line = 0,
 
     '''
     
-    # Use glob2 to get a list of all files in files_directory
-    files = glob2.glob(files_directory+f'/**/*{ext}', recursive=True)
+    # Use glob to get a list of all files in files_directory
+    files = glob.glob(files_directory+f'/**/*{ext}', recursive=True)
     
     filename_list = []
     padded_list = []

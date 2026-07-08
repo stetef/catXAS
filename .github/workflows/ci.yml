@@ -29,12 +29,8 @@ jobs:
       - name: Install the project
         run: uv sync --extra notebooks --python ${{ matrix.python-version }}
 
-      # Non-blocking for now: catxas/ has a pre-existing lint backlog
-      # (~50 issues, incl. possible undefined-name bugs) to be cleaned up
-      # on a dedicated branch. Remove continue-on-error once that lands.
       - name: Lint with ruff
         run: uv run ruff check .
-        continue-on-error: true
 
       - name: Run tests
         run: uv run pytest -q

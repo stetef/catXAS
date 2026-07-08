@@ -105,14 +105,14 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
     
     
     # Make the group a list if it isnt already one
-    if type(larch_groups) != list:
+    if not isinstance(larch_groups, list):
         larch_groups = [larch_groups]
     
     # Count number of groups in list    
     num_groups = len(larch_groups)
     
     # Make the rel_lines a list if it isnt already one
-    if ref_lines != None and type(ref_lines) != list:
+    if ref_lines is not None and not isinstance(ref_lines, list):
         ref_lines = [ref_lines]
     
     # Set Figure paramters based on number of groups and use of derivative plot
@@ -163,12 +163,12 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
         
                 
         # Check to See if E0 has been defined in spectra if e0 == None. If not, ignore plotting
-        if e0_line and e0_temp == None:
+        if e0_line and e0_temp is None:
             try:
                 e0 = larch_groups[i].e0
                 # Diagnostic check, print found e0 value from group
                 #print(e0)
-            except:
+            except Exception:
                 e0 = None
                 print(f'E0 not defined in {larch_groups[i].__name__} or function - E0 not plotted')
                 # Diagnostic check, alert if there was no E0 foune in group
@@ -204,13 +204,13 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
             ax1.plot(x1, y1, label = larch_groups[i].__name__, color = cmap(i), linestyle = 'solid')
             
             # Add E0 line if appropriate
-            if e0_line and e0 != None:
+            if e0_line and e0 is not None:
                 #print('adding e0 line')
                 ax1.axvline(e0, color = 'k')
                 #ax1.plot([e0, e0], [mu_min, mu_max], color = cmap(i))
                 
             # Add reference lines if appropriate
-            if ref_lines != None:
+            if ref_lines is not None:
                 for line in ref_lines:
                     ax1.axvline(line, color = 'r')
                     #ax1.plot([line, line], [mu_min, mu_max], color = 'r')
@@ -266,12 +266,12 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
                 ax2.set_ylabel(f'd{spectra}/dE')
                 
                 # Add E0 line if appropriate
-                if e0_line and e0 != None:
+                if e0_line and e0 is not None:
                     ax2.axvline(e0, color = 'k')
                     #ax2.plot([e0, e0],[der_mu_min-0.25*abs(der_del_mu), der_mu_max+0.25*abs(der_del_mu)],color = 'k')
                 
                 # Add reference lines if appropriate
-                if ref_lines != None:
+                if ref_lines is not None:
                     for line in ref_lines:
                         ax2.axvline(line, color = 'r')
                         #ax2.plot([line, line], [der_mu_min-0.25*abs(der_del_mu), der_mu_max+0.25*abs(der_del_mu)], color = 'r')
@@ -301,12 +301,12 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
             ax1.set_ylabel(spectra)
             
             # Add E0 line if appropriate
-            if e0_line and e0 != None:
+            if e0_line and e0 is not None:
                 ax1.axvline(e0, color = 'k')
                 #ax1.plot([e0, e0], [mu_min, mu_max], color = 'k')
                 
             # Add reference lines if appropriate
-            if ref_lines != None:
+            if ref_lines is not None:
                 for line in ref_lines:
                     ax1.axvline(line, color = 'r')
                     #ax1.plot([line, line], [mu_min, mu_max], color = 'r')
@@ -337,12 +337,12 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
                 ax2.set_ylabel(f'd{spectra}/dE')
                 
                 # Add E0 line if appropriate
-                if e0_line and e0 != None:
+                if e0_line and e0 is not None:
                     ax2.axvline(e0, color = 'k')
                     #ax2.plot([e0, e0],[der_mu_min-0.25*abs(der_del_mu), der_mu_max+0.25*abs(der_del_mu)],color = 'k')
                 
                 # Add reference lines if appropriate
-                if ref_lines != None:
+                if ref_lines is not None:
                     for line in ref_lines:
                         ax2.axvline(line, color = 'r')
                         #ax2.plot([line, line], [der_mu_min-0.25*abs(der_del_mu), der_mu_max+0.25*abs(der_del_mu)], color = 'r')
@@ -354,7 +354,7 @@ def plot_XANES(larch_groups, emin, emax, spectra = 'mu', deriv = True, e0 = None
 def plot_chi(larch_groups, kweight = 2, kmin = 0, kmax = 15, overlay = True, use_legend = True, cmap_name = 'brg'):
     
     # Make the group a list if it isnt already one
-    if type(larch_groups) != list:
+    if not isinstance(larch_groups, list):
         larch_groups = [larch_groups]
     
     # Count number of groups in list    
@@ -461,7 +461,7 @@ def plot_chi(larch_groups, kweight = 2, kmin = 0, kmax = 15, overlay = True, use
 def plot_FT(larch_groups, Rmin = 0, Rmax = 6, magnitude = True, imaginary = True, real = False, overlay = True, use_legend = True, cmap_name = 'brg'):
     
     # Make the group a list if it isnt already one
-    if type(larch_groups) != list:
+    if not isinstance(larch_groups, list):
         larch_groups = [larch_groups]
     
     # Count number of groups in list    

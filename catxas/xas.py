@@ -27,7 +27,6 @@ from scipy.signal import savgol_filter
 
 # X-ray Science
 import larch
-from larch.io import read_ascii
 
 #From Catxas
 from . import general as fcts
@@ -119,9 +118,9 @@ def create_larch_spectrum(photon_energy, numerator, denominator, log=True, flip 
 
     '''
                
-    if name != None:
+    if name is not None:
         spectrum = larch.Group(name = name)
-    elif name == None:
+    elif name is None:
         spectrum = larch.Group()
     
     
@@ -167,7 +166,7 @@ def calculate_spectrum_e0(larch_group, edge_energy, energy_range = [-20, 20], se
 
     '''
     
-    if type(energy_range) == float or type(energy_range) == int:
+    if isinstance(energy_range, (float, int)):
         energy_range = [-1*energy_range, energy_range]
     
     emin = edge_energy+energy_range[0]
@@ -393,7 +392,7 @@ def normalize_spectrum(larch_group):
                                 pre1 = pre1, pre2 = pre2, 
                                 norm1 = norm1, norm2 = norm2, 
                                 nnorm = nnorm, make_flat = make_flat)
-    except:
+    except Exception:
         print('One of the normalzation parameters (pre1, pre2, norm1, norm2, nnorm, or make_flat) is not defined')
 
 def update_autobk_params(larch_group, rbkg = 1, nknots = None, kmin = 0, kmax = None, kweight = 1, dk = 0.1,
@@ -447,7 +446,7 @@ def calc_spectrum_exafs(larch_group):
                           dk = dk, win = win, nfft = nfft, kstep = kstep, k_std = k_std,
                           chi_std = chi_std, nclamp = nclamp, clamp_lo = clamp_lo, clamp_hi = clamp_hi,
                           err_sigma = err_sigma)
-    except:
+    except Exception:
         print('One of the autobk parameters is incorrectly define [see Larch documentation]')
 
 def update_xftf_params(larch_group, rmax_out = 10, kweight = 2, kmin = 3, kmax = 12, dk = 5, dk2 = 5, 

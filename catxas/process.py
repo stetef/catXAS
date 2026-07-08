@@ -245,7 +245,7 @@ def ReadBiologicData(filename):
     tbd
     filename type = list
     """
-    if isinstance(filename, list) == False:
+    if not isinstance(filename, list):
         filename = [filename]
     # Extract Data into pandas dataframe
     for i in range(len(filename)):

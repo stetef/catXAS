@@ -179,20 +179,28 @@ were resolved deliberately:
 
 ## Known follow-ups (intentionally out of scope here)
 
-- **Lint backlog**: ruff reports ~50 issues in `catxas/`, including ~12
-  `F821` (undefined name) warnings that may be real bugs. CI's ruff step is
-  currently **non-blocking** (`continue-on-error`); a dedicated cleanup branch
-  should fix these and then flip it to blocking.
-- **Pre-commit hook tuning**: the local hook blocks commits that touch
-  `catxas/` (the ruff backlog above) or add the inherently large sample/fixture
-  data (`check-added-large-files` defaults to 500 KB), so recent commits used
-  `--no-verify`. Raise the large-files limit (or exclude `sample data/` and
-  `tests/data/`) and clear the ruff backlog so the hook runs clean.
+- **Lint backlog** — *done* (branch `lint-backlog-cleanup`): the ruff backlog
+  in `catxas/` is cleared and CI's ruff step is now **blocking**
+  (`continue-on-error` removed). The 44 live-code issues were fixed by hand —
+  `== None`/`!= None` → `is`/`is not` (E711/E712), `type(x) == T` →
+  `isinstance` (E721), bare `except:` → `except Exception:` (E722), and unused
+  imports/variables (F401/F841). All 16 `F821` (undefined name) warnings were
+  confined to the non-importable `depreciated functions.py`; that file is
+  excluded from ruff (see **Dead module** below) rather than edited, so those
+  were not real bugs in live code.
+- **Pre-commit hook tuning**: the local hook's `check-added-large-files`
+  (defaults to 500 KB) still blocks adding the inherently large sample/fixture
+  data, so data-adding commits used `--no-verify`. Raise the large-files limit
+  (or exclude `sample data/` and `tests/data/`). The ruff portion of the hook
+  now runs clean on `catxas/`.
 - **Dead module**: `catxas/depreciated functions.py` has a space in its
   filename (so it is not importable, and the name is misspelled). It should be
   renamed to a valid module — **do not delete it**: upstream treats it as a live
   graveyard and still appends deprecated functions to it (e.g.
-  `save_normalize_spectra`), so a rename must be coordinated with upstream.
+  `save_normalize_spectra`), so a rename must be coordinated with upstream. In
+  the meantime it is excluded from ruff (`tool.ruff.exclude` in
+  `pyproject.toml`) so its missing-import `F821`s don't block the now-blocking
+  CI lint; fold it back in once it is renamed to an importable module.
 - **Type checking**: no type checker yet; adding mypy or pyright to CI would
   catch a class of bugs ruff cannot.
 - **Dependency automation**: add a `.github/dependabot.yml` (replacing the

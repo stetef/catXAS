@@ -357,7 +357,7 @@ class Experiment:
             print('Name of Process data alerady exists. Choose a new name.')
             
         # Check if df index is in a datetime format
-        elif isinstance(process_df.index, pd.DatetimeIndex) == False:
+        elif not isinstance(process_df.index, pd.DatetimeIndex):
             
             print('Index of data is not in a datetime format. Redefine the inext and upload again.')
             
@@ -411,7 +411,7 @@ class Experiment:
         energy_name = xas_data_structure['energy column']
         
         # Get the name of the scan without path or extension
-        if ext == None:
+        if ext is None:
             fname = os.path.basename(file)
         else:
             fname = os.path.basename(file)[:-4]
@@ -559,7 +559,7 @@ class Experiment:
         '''
         
         # Use glob to get a list of all files in files_directory
-        if ext == None:
+        if ext is None:
             files = glob.glob(xas_data_directory+'/**/*', recursive=True)
         else:
             files = glob.glob(xas_data_directory+f'/**/*{ext}', recursive=True)
@@ -735,9 +735,9 @@ class Experiment:
                     if index == 'Filename':
                         print(f'\t{(index)}: {value}')
                     else:
-                        if type(value) == str or type(value) == int:
+                        if isinstance(value, (str, int)):
                             print(f'\t\t{(index+":").rjust(20)}\t{value}')
-                        elif type(value) == float:
+                        elif isinstance(value, float):
                             print(f'\t\t{(index+":").rjust(20)}\t{value:0.2f}')
             
         # Returns df of bad spectra with their edge steps
@@ -1040,7 +1040,7 @@ class Experiment:
                         samp_denominator = np.sum([samp_denominator, self.spectra[scan]['BL Data'].__dict__[sample_denominator[i]]], axis = 0)
             else:
                 # Check if its devided by 1 or not
-                if sample_denominator == int(1) or sample_denominator == None:
+                if sample_denominator == int(1) or sample_denominator is None:
                     samp_denominator = [1]*len(samp_numerator)
                 
                 else:
@@ -1087,7 +1087,7 @@ class Experiment:
                         ref_denominator = ref_denominator + self.spectra[scan]['BL Data'].__dict__[reference_denominator[i]]
             else:
                 # Check if its devided by 1 or not
-                if reference_denominator == str(1) or reference_denominator == None:
+                if reference_denominator == str(1) or reference_denominator is None:
                     ref_denominator = [1]*len(ref_numerator)
                 
                 else:
@@ -1381,8 +1381,6 @@ class Experiment:
         
         for key in self.spectra.keys():
             #Write Select Data into dataframe
-            time_step = self.spectra[key]['Time']
-            
             if y_axis_name == 'Energy':
                
                x = self.spectra[key]['Absorption Spectra'][sample].__dict__['energy']+self.spectra[key]['Absorption Spectra'][sample].delE
@@ -1395,7 +1393,7 @@ class Experiment:
                     kweight = self.spectra[key]['Absorption Spectra'][sample].kweight
                     
                     y_axis_name = y_axis_name+f'_k^{kweight}'
-                except:
+                except Exception:
                     print('k weight not defined, deafaulting to k weight = 2')
                     kweight = 2
                     y_axis_name = y_axis_name+'_k^2'
@@ -1517,7 +1515,7 @@ class Experiment:
 
         '''
 
-        if type(energy_range) == float or type(energy_range) == int:
+        if isinstance(energy_range, (float, int)):
             energy_range = [-1*energy_range, energy_range]
         
         # Reference Lines for defining bounds of where the edge was looked for
@@ -2178,8 +2176,8 @@ class Experiment:
         f1_ax2 = fig1.add_subplot(spec1[7:,0:], sharex=f1_ax1)
 
         for col in self.analysis['LCF'][fit_name]['Fit Summary'].columns:
-            if not 'stdev' in col:
-                if 'Amp' in col and not 'Sum' in col:
+            if 'stdev' not in col:
+                if 'Amp' in col and 'Sum' not in col:
                     if error_bars:
                         f1_ax1.errorbar(self.analysis['LCF'][fit_name]['Fit Summary'][col].index, 
                                     self.analysis['LCF'][fit_name]['Fit Summary'][col], 
@@ -2195,7 +2193,7 @@ class Experiment:
         f1_ax2.plot(self.analysis['LCF'][fit_name]['Fit Summary']['RedChi2'], color = 'k')
 
 
-        if process_parameter != None:
+        if process_parameter is not None:
             f1_ax3 = f1_ax1.twinx()
             f1_ax3.plot(self.summary['XAS Spectra Process Params'][process_parameter].values, color = 'k')
 

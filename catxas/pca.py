@@ -671,8 +671,8 @@ def plot_pca_scores_3d(pca_results, df_original, figsize=(12, 10),
     cmap = pfcts.get_cmap(n_spectra, name=colormap)
     colors = cmap(np.linspace(0, 1, n_spectra))
     
-    scatter = ax.scatter(pc1, pc2, pc3, c=colors, s=100, alpha=0.7, 
-                        edgecolors='black', linewidth=1)
+    ax.scatter(pc1, pc2, pc3, c=colors, s=100, alpha=0.7,
+               edgecolors='black', linewidth=1)
     
     # Draw axes through origin
     ax.plot([0, 0], [0, 0], [min(pc3), max(pc3)], 'k--', alpha=0.3, linewidth=1)

@@ -77,7 +77,10 @@ packages = ["catxas"]
 target-version = "py310"
 line-length = 120
 # notebooks/ use an interactive (non-package) import style; docs/ is generated.
-exclude = ["docs", "notebooks"]
+# "depreciated functions.py" is a non-importable graveyard (space in the name)
+# that upstream still appends to; a rename must be coordinated with upstream, so
+# it is excluded here rather than edited. See MODERNIZATION.md "Dead module".
+exclude = ["docs", "notebooks", "catxas/depreciated functions.py"]
 # Honor `exclude` even when pre-commit passes file paths explicitly.
 force-exclude = true
 

@@ -8,24 +8,32 @@
 # ruff replaces black + isort + flake8 (formatter + linter in one tool);
 # line length / lint rules are configured in pyproject.toml [tool.ruff].
 repos:
-  # General file hygiene
+  # File-validation hygiene. The content-rewriting hooks (trailing-whitespace,
+  # end-of-file-fixer, mixed-line-ending) are intentionally omitted: the legacy
+  # catxas/ code and committed instrument data carry trailing whitespace on most
+  # lines, so those hooks would rewrite ~2400 lines on first touch and create
+  # recurring (and invisible-to-eyeball) whitespace conflicts on every
+  # `git merge upstream/main`. ruff's configured rule set doesn't enforce
+  # trailing whitespace either, so this is left as a deliberate no-op.
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
-      - id: mixed-line-ending
+        # Keep the 500 KB guard for code, but exempt the directories that
+        # legitimately hold large XAS data / notebook outputs / test fixtures.
+        exclude: '^(sample data|sample results|tests/data|notebooks)/'
 
-  # Lint + format (replaces black/isort/flake8)
+  # Lint (ruff replaces flake8/isort). The ruff *formatter* is intentionally
+  # not run as a hook: the existing catxas/ code was never ruff-formatted, so
+  # enabling it would force a large one-off reformat that collides with
+  # upstream merges. Run `uv run ruff format` by hand if/when desired.
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.20
     hooks:
       - id: ruff-check
         args: [--fix]
-      - id: ruff-format
 
   # Dependency guard: fail if pyproject.toml and uv.lock have drifted apart
   - repo: https://github.com/astral-sh/uv-pre-commit

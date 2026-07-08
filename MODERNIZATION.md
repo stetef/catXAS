@@ -188,11 +188,20 @@ were resolved deliberately:
   confined to the non-importable `depreciated functions.py`; that file is
   excluded from ruff (see **Dead module** below) rather than edited, so those
   were not real bugs in live code.
-- **Pre-commit hook tuning**: the local hook's `check-added-large-files`
-  (defaults to 500 KB) still blocks adding the inherently large sample/fixture
-  data, so data-adding commits used `--no-verify`. Raise the large-files limit
-  (or exclude `sample data/` and `tests/data/`). The ruff portion of the hook
-  now runs clean on `catxas/`.
+- **Pre-commit hook tuning** — *done* (branch `precommit-tuning`):
+  `uv run pre-commit run --all-files` now passes clean, so commits no longer
+  need `--no-verify`. Two changes: (1) `check-added-large-files` now excludes
+  `sample data/`, `sample results/`, `tests/data/`, and `notebooks/` (the dirs
+  that legitimately hold large data / fixtures / notebook outputs) while keeping
+  the 500 KB guard for code; (2) the content-*rewriting* hooks — `ruff-format`,
+  `trailing-whitespace`, `end-of-file-fixer`, `mixed-line-ending` — were dropped.
+  The legacy `catxas/` code and committed instrument data carry trailing
+  whitespace on most lines, so those hooks would have rewritten ~2400 lines on
+  first touch and produced recurring, invisible-to-eyeball whitespace conflicts
+  on every `git merge upstream/main`; ruff's rule set doesn't enforce trailing
+  whitespace anyway. Only validating hooks remain (`check-yaml`/`check-toml`/
+  `check-added-large-files`/`ruff-check`/`uv-lock`). If whitespace enforcement is
+  ever wanted, do a one-off cleanup right after an upstream sync, not via a hook.
 - **Dead module**: `catxas/depreciated functions.py` has a space in its
   filename (so it is not importable, and the name is misspelled). It should be
   renamed to a valid module — **do not delete it**: upstream treats it as a live

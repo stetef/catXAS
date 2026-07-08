@@ -205,9 +205,13 @@ were resolved deliberately:
   catch a class of bugs ruff cannot.
 - **Dependency automation**: add a `.github/dependabot.yml` (replacing the
   stale `.pyup.yml`) for automated dependency-update PRs.
-- **Single-source version**: the version is duplicated in `pyproject.toml` and
-  `catxas/__init__.py`; consider deriving it from one source (e.g. hatch-vcs).
-  This also resolves the unconfigured `bump-my-version`.
+- **Single-source version** — *done* (branch `single-source-version`): the
+  version now lives only in `catxas/__init__.py`. `pyproject.toml` declares
+  `dynamic = ["version"]` and `[tool.hatch.version]` reads the string from that
+  module, so there is one source of truth. (`bump-my-version` is still
+  unconfigured; leaving it out avoids re-introducing a second literal — bump
+  `__init__.py` by hand, or wire up hatch-vcs/git tags later if tooled bumps
+  become worth it.)
 - **PyPI publishing**: not automated; the modern approach is GitHub Actions
   with PyPI Trusted Publishing (OIDC).
 - **Sphinx polish**: minor pre-existing build warnings remain

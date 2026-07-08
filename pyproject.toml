@@ -4,7 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "catxas"
-version = "0.1.0"
+# Version is single-sourced from catxas/__init__.py via [tool.hatch.version].
+dynamic = ["version"]
 description = "Python package for manipulation and analysis of in-situ Catalysis XAS data collected via CXAS at SSRL"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -69,6 +70,9 @@ dev = [
     "sphinx-autobuild>=2024.0",
     "myst-parser>=2.0",
 ]
+
+[tool.hatch.version]
+path = "catxas/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["catxas"]

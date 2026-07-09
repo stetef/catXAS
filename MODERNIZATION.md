@@ -3,7 +3,8 @@
 This document summarizes a set of modernization changes to the `catXAS`
 packaging, dependencies, and developer tooling, and explains the motivation
 behind each. The functional analysis code in `catxas/` is unchanged except for
-a small import-correctness fix described below.
+a small import-correctness fix and a behavior-preserving lint cleanup, both
+described below.
 
 ## Why modernize?
 
@@ -82,6 +83,10 @@ The `pca.py` module later merged from upstream carried the same bare
 - ruff is configured in `pyproject.toml` (`line-length = 120`, py310 target,
   `force-exclude = true`, excludes `docs/` and `notebooks/`).
 
+  This describes the hook set as first added; the content-rewriting hooks were
+  later pared back so commits run clean against the legacy code — see
+  [§7](#7-post-modernization-cleanup-lint-versioning-pre-commit).
+
 ### 6. Documentation and Makefile
 
 - **README.md** rewritten for the uv workflow (install via `uv sync`, the
@@ -96,6 +101,40 @@ The `pca.py` module later merged from upstream carried the same bare
   `coverage`/`docs`/`servedocs`/`dist`/`install` all route through uv (e.g.
   `uv run pytest`, `uv build`, `uv run sphinx-autobuild`). `make docs`
   regenerates the API stubs so the docs build cleanly.
+
+### 7. Post-modernization cleanup (lint, versioning, pre-commit)
+
+Three items first tracked as follow-ups have since been completed, each on its
+own branch merged to `main`:
+
+- **Lint backlog cleared; CI lint made blocking** (`lint-backlog-cleanup`).
+  The ruff backlog in `catxas/` is fixed and the CI ruff step is now **blocking**
+  (`continue-on-error` removed). The 44 live-code issues were fixed by hand —
+  `== None`/`!= None` → `is`/`is not` (E711/E712), `type(x) == T` → `isinstance`
+  (E721), bare `except:` → `except Exception:` (E722), and unused imports/
+  variables (F401/F841). All 16 `F821` (undefined name) warnings were confined
+  to the non-importable `depreciated functions.py` (see the **Dead module**
+  follow-up); that file is excluded from ruff (`tool.ruff.exclude` in
+  `pyproject.toml`) rather than edited, so none were real bugs in live code.
+- **Version single-sourced** (`single-source-version`). The version literal now
+  lives only in `catxas/__init__.py`; `pyproject.toml` declares
+  `dynamic = ["version"]` and `[tool.hatch.version]` reads it from that module,
+  so there is one source of truth. (`bump-my-version` is left unconfigured to
+  avoid re-introducing a second literal — bump `__init__.py` by hand, or wire up
+  hatch-vcs/git tags later if tooled bumps become worth it.)
+- **Pre-commit tuned so commits run clean** (`precommit-tuning`).
+  `uv run pre-commit run --all-files` now passes with no `--no-verify`.
+  `check-added-large-files` keeps the 500 KB guard for code but excludes the
+  dirs that legitimately hold large data / fixtures / notebook outputs
+  (`sample data/`, `sample results/`, `tests/data/`, `notebooks/`). The
+  content-*rewriting* hooks (`ruff-format`, `trailing-whitespace`,
+  `end-of-file-fixer`, `mixed-line-ending`) were dropped: the legacy code and
+  committed instrument data carry trailing whitespace on most lines, so those
+  hooks would have rewritten ~2400 lines on first touch and produced recurring,
+  invisible-to-eyeball whitespace conflicts on every `git merge upstream/main`
+  (ruff's rule set doesn't enforce trailing whitespace anyway). Only validating
+  hooks remain. If whitespace enforcement is ever wanted, do a one-off cleanup
+  right after an upstream sync, not via a hook.
 
 ## New developer workflow
 
@@ -177,31 +216,8 @@ were resolved deliberately:
   the relative-import fix noted above; their dependencies (`scikit-learn`,
   `kneed`, `pymcr`) were folded into the existing `notebooks` extra.
 
-## Known follow-ups (intentionally out of scope here)
+## Remaining follow-ups (intentionally out of scope here)
 
-- **Lint backlog** — *done* (branch `lint-backlog-cleanup`): the ruff backlog
-  in `catxas/` is cleared and CI's ruff step is now **blocking**
-  (`continue-on-error` removed). The 44 live-code issues were fixed by hand —
-  `== None`/`!= None` → `is`/`is not` (E711/E712), `type(x) == T` →
-  `isinstance` (E721), bare `except:` → `except Exception:` (E722), and unused
-  imports/variables (F401/F841). All 16 `F821` (undefined name) warnings were
-  confined to the non-importable `depreciated functions.py`; that file is
-  excluded from ruff (see **Dead module** below) rather than edited, so those
-  were not real bugs in live code.
-- **Pre-commit hook tuning** — *done* (branch `precommit-tuning`):
-  `uv run pre-commit run --all-files` now passes clean, so commits no longer
-  need `--no-verify`. Two changes: (1) `check-added-large-files` now excludes
-  `sample data/`, `sample results/`, `tests/data/`, and `notebooks/` (the dirs
-  that legitimately hold large data / fixtures / notebook outputs) while keeping
-  the 500 KB guard for code; (2) the content-*rewriting* hooks — `ruff-format`,
-  `trailing-whitespace`, `end-of-file-fixer`, `mixed-line-ending` — were dropped.
-  The legacy `catxas/` code and committed instrument data carry trailing
-  whitespace on most lines, so those hooks would have rewritten ~2400 lines on
-  first touch and produced recurring, invisible-to-eyeball whitespace conflicts
-  on every `git merge upstream/main`; ruff's rule set doesn't enforce trailing
-  whitespace anyway. Only validating hooks remain (`check-yaml`/`check-toml`/
-  `check-added-large-files`/`ruff-check`/`uv-lock`). If whitespace enforcement is
-  ever wanted, do a one-off cleanup right after an upstream sync, not via a hook.
 - **Dead module**: `catxas/depreciated functions.py` has a space in its
   filename (so it is not importable, and the name is misspelled). It should be
   renamed to a valid module — **do not delete it**: upstream treats it as a live
@@ -214,13 +230,6 @@ were resolved deliberately:
   catch a class of bugs ruff cannot.
 - **Dependency automation**: add a `.github/dependabot.yml` (replacing the
   stale `.pyup.yml`) for automated dependency-update PRs.
-- **Single-source version** — *done* (branch `single-source-version`): the
-  version now lives only in `catxas/__init__.py`. `pyproject.toml` declares
-  `dynamic = ["version"]` and `[tool.hatch.version]` reads the string from that
-  module, so there is one source of truth. (`bump-my-version` is still
-  unconfigured; leaving it out avoids re-introducing a second literal — bump
-  `__init__.py` by hand, or wire up hatch-vcs/git tags later if tooled bumps
-  become worth it.)
 - **PyPI publishing**: not automated; the modern approach is GitHub Actions
   with PyPI Trusted Publishing (OIDC).
 - **Sphinx polish**: minor pre-existing build warnings remain

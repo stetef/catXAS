@@ -216,6 +216,108 @@ were resolved deliberately:
   the relative-import fix noted above; their dependencies (`scikit-learn`,
   `kneed`, `pymcr`) were folded into the existing `notebooks` extra.
 
+## Performance: eliminating the O(N²) import/interpolation cost (proposed)
+
+Profiling the per-file data path (prompted by comparing against a batch
+reimplementation of the same processing) surfaced that importing a directory of
+spectra scales **quadratically** in the number of files, not linearly. The cost
+is pure bookkeeping — sorting, dict-rebuilding, and DataFrame accumulation — not
+XAS physics, so it can be removed with small, behavior-preserving changes. The
+fixes below are **not yet implemented**; they are recorded here as a scoped
+follow-up.
+
+**Measurement context.** The O(N) batch reimplementation processes a 1.2 GB /
+590-scan dataset in **~57 s single-threaded**; the corresponding catXAS-style
+per-scan pipeline on comparable data is reported to take on the order of hours at
+~5 GB. Most of that gap is the two structural issues below (the rest is the
+per-scan Larch granularity noted at the end). The speed-up figures are
+**analytical estimates** from the complexity change (O(N²) → O(N)), not a
+measured catXAS before/after — they should be confirmed with a profiling run.
+
+### 1. Hoist collection-finalization out of the per-file import loop (largest win)
+
+`import_spectrum` (singular, one file) does *whole-collection* finalization on
+**every** call — it re-sorts the entire summary, rebuilds the full
+`self.spectra` dict, and recomputes elapsed-time (TOS) for every file loaded so
+far ([`experiment.py:519-535`](catxas/experiment.py#L519-L535)). Because
+`import_spectra` (plural) calls it once per file, importing N files does that
+O(N) finalization N times → **O(N²)**. This is the dominant term.
+
+*Fix:* add a `finalize=True` flag to `import_spectrum`; have the batch loop pass
+`finalize=False` and call the finalization block **once** after the loop.
+Standalone `import_spectrum()` calls still finalize by default, so no external
+behavior changes.
+
+```python
+def import_spectrum(self, ..., finalize=True):
+    ...
+    self.summary['XAS Spectra Files'] = pd.concat(
+        [self.summary['XAS Spectra Files'], temp_df], axis=0, ignore_index=False)
+    self.spectra[fname]['Time'] = time
+    if finalize:
+        self._finalize_spectra(time_stamp)   # sort / rebuild dict / TOS, moved here
+
+def import_spectra(self, ...):
+    for file in files:
+        self.import_spectrum(..., finalize=False)
+    self._finalize_spectra(time_stamp=True)   # once, not per file
+```
+
+*Estimated speed-up:* the import phase drops from O(N²) to O(N). The relative
+win grows with dataset size — negligible at tens of files, but roughly **N/2×**
+on the finalization work at N files (e.g. ~hundreds-fold fewer sort/rebuild
+passes on a 1000-scan set), turning an import phase measured in minutes into one
+measured in seconds. A further micro-optimization — accumulating rows in a
+Python list and building the summary DataFrame once at finalize instead of
+per-file `pd.concat` at [`experiment.py:514`](catxas/experiment.py#L514) — is
+optional and captures a smaller remaining slice.
+
+### 2. One `pd.concat` instead of N in the interpolation loops
+
+`interpolate_spectra` ([`experiment.py:1414`](catxas/experiment.py#L1414)) and
+`interpolate_spectra_E` ([`experiment.py:1475`](catxas/experiment.py#L1475))
+grow `results_df` by `pd.concat`-ing one interpolated column per scan inside the
+loop — each concat re-copies the whole accumulating frame, so the loop is
+**O(N²)** in the column count. Every column targets the same `results_df.index`
+grid, so they can be collected and concatenated once:
+
+```python
+cols = []
+for key in self.spectra.keys():
+    ...
+    cols.append(fcts.interp_df(temp_df, results_df.index))
+results_df = pd.concat([results_df] + cols, axis=1, join="inner")   # single concat
+```
+
+The interpolation math (`np.interp`) is unchanged; only the accumulation is
+fixed. *Estimated speed-up:* O(N²) → O(N) on the interpolation assembly —
+similar N-dependent scaling to Fix 1, material once there are many scans.
+
+### 3. Vectorize the TOS computation
+
+Inside the finalization, the elapsed-time loop
+([`experiment.py:526-530`](catxas/experiment.py#L526-L530)) is one NumPy
+expression:
+
+```python
+idx = self.summary['XAS Spectra Files'].index.values
+self.summary['XAS Spectra Files']['TOS [s]'] = (idx - idx[0]) / np.timedelta64(1, 's')
+```
+
+Once Fix 1 makes this run only once (not per file), it is already O(N) overall;
+vectorizing is a free tidy-up rather than an asymptotic change.
+
+### Not addressed by the above (architectural, linear cost)
+
+catXAS creates one Larch group and runs `autobk`/`pre_edge`/`xftf` **per
+single-scan file** ([`experiment.py:1693`](catxas/experiment.py#L1693) and
+neighbors). That cost is already linear in the number of scans, so the fixes
+above do not touch it — it is the floor the import phase drops toward. Reducing
+it further is a larger effort: either parallelize across files with a process
+pool, or move to a vectorized many-scans-per-file μ-matrix model (a core
+data-model change, out of scope for a bookkeeping fix). Both are noted only for
+context; neither is proposed here.
+
 ## Remaining follow-ups (intentionally out of scope here)
 
 - **Dead module**: `catxas/depreciated functions.py` has a space in its
